@@ -209,6 +209,15 @@ export default function Progress() {
   const daysInMonth = getDaysInMonth(currentYear, currentMonth)
   const firstDay = getFirstDayOfWeek(currentYear, currentMonth)
 
+  // Real water data
+  const todayWaterKey = now.toISOString().split('T')[0]
+  const realWater = (() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem('stoa-water') || '{}')
+      return stored[todayWaterKey] || 0
+    } catch { return 0 }
+  })()
+
   const [wheelCategories, setWheelCategories] = useState(loadWheel)
   const [manifestations, setManifestations] = useState(loadManifestations)
   const [newIntention, setNewIntention] = useState('')
@@ -331,7 +340,7 @@ export default function Progress() {
                 strokeDasharray={2 * Math.PI * ((ringSize - 10) / 2 - 28)}
                 strokeDashoffset={
                   2 * Math.PI * ((ringSize - 10) / 2 - 28) -
-                  Math.min(dailyData.waterGlasses / 8, 1) *
+                  Math.min(realWater / 8, 1) *
                   2 * Math.PI * ((ringSize - 10) / 2 - 28)
                 }
                 transform={`rotate(-90 ${ringSize / 2} ${ringSize / 2})`}
@@ -343,7 +352,7 @@ export default function Progress() {
             {[
               { label: 'Movement', value: `${dailyData.movementMin}/30 min`, color: '#FFFFFF' },
               { label: 'Stillness', value: `${dailyData.stillnessMin}/20 min`, color: 'rgba(255,255,255,0.5)' },
-              { label: 'Water', value: `${dailyData.waterGlasses}/8 glasses`, color: 'rgba(255,255,255,0.25)' },
+              { label: 'Water', value: `${realWater}/8 glasses`, color: 'rgba(255,255,255,0.25)' },
             ].map(m => (
               <div key={m.label} style={{ textAlign: 'center' }}>
                 <div style={{
@@ -523,6 +532,60 @@ export default function Progress() {
           })}
         </div>
       </div>
+
+      {/* Mood History */}
+      {(() => {
+        let moodHistory = []
+        try {
+          const stored = JSON.parse(localStorage.getItem('stoa-moods') || '{}')
+          const moodMap = { 5: '✨', 4: '😊', 3: '😌', 2: '😔', 1: '😣' }
+          const labelMap = { 5: 'Amazing', 4: 'Good', 3: 'Okay', 2: 'Low', 1: 'Rough' }
+          const sorted = Object.entries(stored).sort((a, b) => b[0].localeCompare(a[0])).slice(0, 14)
+          moodHistory = sorted.map(([date, mood]) => ({
+            date,
+            emoji: mood.emoji || moodMap[mood.value] || '😌',
+            label: mood.label || labelMap[mood.value] || 'Okay',
+            value: mood.value || 3,
+          }))
+        } catch {}
+
+        if (moodHistory.length === 0) return null
+
+        return (
+          <div style={{ padding: '0 24px 28px' }}>
+            <p style={sectionLabel}>Mood History</p>
+            <div style={{ background: colors.surface, borderRadius: 14, padding: 20 }}>
+              {/* Mood bar chart */}
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, marginBottom: 16, height: 80 }}>
+                {moodHistory.slice().reverse().map((m, i) => (
+                  <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                    <span style={{ fontSize: 14 }}>{m.emoji}</span>
+                    <div style={{
+                      width: '100%', borderRadius: 3,
+                      height: `${(m.value / 5) * 40}px`,
+                      background: `rgba(255,255,255,${0.08 + (m.value / 5) * 0.2})`,
+                      transition: 'height 0.3s',
+                    }} />
+                    <span style={{ fontFamily: fonts.mono, fontSize: 7, color: colors.text3 }}>
+                      {new Date(m.date + 'T00:00:00').getDate()}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              {/* Average */}
+              {moodHistory.length > 1 && (() => {
+                const avg = moodHistory.reduce((s, m) => s + m.value, 0) / moodHistory.length
+                const avgLabel = avg >= 4.5 ? 'Amazing' : avg >= 3.5 ? 'Good' : avg >= 2.5 ? 'Okay' : avg >= 1.5 ? 'Low' : 'Rough'
+                return (
+                  <p style={{ fontFamily: fonts.sans, fontSize: 12, color: colors.text3, textAlign: 'center' }}>
+                    Average mood: <span style={{ color: colors.text2, fontWeight: 500 }}>{avgLabel}</span> over {moodHistory.length} days
+                  </p>
+                )
+              })()}
+            </div>
+          </div>
+        )
+      })()}
 
       {/* Note from the Universe */}
       <div style={{ margin: '0 16px 28px', background: colors.surface, borderRadius: 16, padding: '32px 28px', textAlign: 'center' }}>

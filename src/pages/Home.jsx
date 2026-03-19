@@ -239,6 +239,64 @@ export default function Home() {
     return generateStats(hour, rng)
   }, [hour])
 
+  // Water tracking — real, tappable
+  const todayKey = new Date().toISOString().split('T')[0]
+  const [waterCount, setWaterCount] = useState(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem('stoa-water') || '{}')
+      return stored[todayKey] || 0
+    } catch { return 0 }
+  })
+
+  function addWater() {
+    setWaterCount(prev => {
+      const next = Math.min(prev + 1, 12)
+      try {
+        const stored = JSON.parse(localStorage.getItem('stoa-water') || '{}')
+        stored[todayKey] = next
+        localStorage.setItem('stoa-water', JSON.stringify(stored))
+      } catch {}
+      return next
+    })
+  }
+
+  function removeWater() {
+    setWaterCount(prev => {
+      const next = Math.max(prev - 1, 0)
+      try {
+        const stored = JSON.parse(localStorage.getItem('stoa-water') || '{}')
+        stored[todayKey] = next
+        localStorage.setItem('stoa-water', JSON.stringify(stored))
+      } catch {}
+      return next
+    })
+  }
+
+  // Mood check-in
+  const MOODS = [
+    { emoji: '✨', label: 'Amazing', value: 5 },
+    { emoji: '😊', label: 'Good', value: 4 },
+    { emoji: '😌', label: 'Okay', value: 3 },
+    { emoji: '😔', label: 'Low', value: 2 },
+    { emoji: '😣', label: 'Rough', value: 1 },
+  ]
+
+  const [todayMood, setTodayMood] = useState(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem('stoa-moods') || '{}')
+      return stored[todayKey] || null
+    } catch { return null }
+  })
+
+  function setMood(mood) {
+    setTodayMood(mood)
+    try {
+      const stored = JSON.parse(localStorage.getItem('stoa-moods') || '{}')
+      stored[todayKey] = mood
+      localStorage.setItem('stoa-moods', JSON.stringify(stored))
+    } catch {}
+  }
+
   // Pick ALL photos for the page in one pass — zero repeats, time-aware hero
   const { photos, visionItems } = useMemo(() => {
     const preferred = TIME_PHOTOS[timeOfDay]
@@ -535,24 +593,43 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Water */}
-        <div style={{
+        {/* Water — tappable */}
+        <div onClick={addWater} style={{
           background: colors.surface, borderRadius: 14, padding: '18px 16px',
           display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-          minHeight: 120, position: 'relative', overflow: 'hidden',
+          minHeight: 120, position: 'relative', overflow: 'hidden', cursor: 'pointer',
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.text2} strokeWidth={1.5} strokeLinecap="round">
               <path d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0z" />
             </svg>
-            <span style={{ fontFamily: fonts.sans, fontSize: 9, fontWeight: 600, color: colors.text3, letterSpacing: 1, textTransform: 'uppercase' }}>Water</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              {waterCount > 0 && (
+                <span onClick={(e) => { e.stopPropagation(); removeWater() }} style={{
+                  fontFamily: fonts.sans, fontSize: 14, color: colors.text3, cursor: 'pointer', padding: '0 4px',
+                }}>−</span>
+              )}
+              <span style={{ fontFamily: fonts.sans, fontSize: 9, fontWeight: 600, color: colors.text3, letterSpacing: 1, textTransform: 'uppercase' }}>Water</span>
+            </div>
           </div>
           <div>
             <p style={{ fontFamily: fonts.sans, fontSize: 28, fontWeight: 300, color: colors.text, lineHeight: 1 }}>
-              {stats.water.value} <span style={{ fontSize: 13, color: colors.text2 }}>{stats.water.label}</span>
+              {waterCount} <span style={{ fontSize: 13, color: colors.text2 }}>of 8</span>
             </p>
-            <p style={{ fontFamily: fonts.sans, fontSize: 11, color: colors.text3, marginTop: 4 }}>{stats.water.sub}</p>
-            <StatBar value={stats.water.value} goal={stats.water.goal} />
+            <p style={{ fontFamily: fonts.sans, fontSize: 11, color: colors.text3, marginTop: 4 }}>
+              {waterCount >= 8 ? 'goal reached!' : 'tap to add a glass'}
+            </p>
+            <StatBar value={waterCount} goal={8} />
+          </div>
+          {/* Water fill dots */}
+          <div style={{ display: 'flex', gap: 3, marginTop: 8 }}>
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} style={{
+                width: 6, height: 6, borderRadius: 3,
+                background: i < waterCount ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.08)',
+                transition: 'background 0.2s',
+              }} />
+            ))}
           </div>
         </div>
 
@@ -710,12 +787,60 @@ export default function Home() {
     </div>
   )
 
+  // Mood check-in section
+  const moodSection = (
+    <div style={{ padding: '20px 20px 0' }}>
+      <div style={{
+        background: colors.surface, borderRadius: 14, padding: '18px 20px',
+        border: `1px solid ${colors.border}`,
+      }}>
+        {!todayMood ? (
+          <>
+            <p style={{ fontFamily: fonts.sans, fontSize: 14, fontWeight: 500, color: colors.text, marginBottom: 14 }}>
+              How are you feeling?
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              {MOODS.map(m => (
+                <div key={m.value} onClick={() => setMood(m)} style={{
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
+                  cursor: 'pointer', padding: '8px 4px', borderRadius: 12,
+                  flex: 1,
+                }}>
+                  <span style={{ fontSize: 24 }}>{m.emoji}</span>
+                  <span style={{ fontFamily: fonts.sans, fontSize: 10, color: colors.text3 }}>{m.label}</span>
+                </div>
+              ))}
+            </div>
+          </>
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <span style={{ fontSize: 28 }}>{todayMood.emoji}</span>
+              <div>
+                <p style={{ fontFamily: fonts.sans, fontSize: 14, fontWeight: 500, color: colors.text }}>
+                  Feeling {todayMood.label.toLowerCase()}
+                </p>
+                <p style={{ fontFamily: fonts.sans, fontSize: 11, color: colors.text3, marginTop: 2 }}>
+                  Today's check-in
+                </p>
+              </div>
+            </div>
+            <p onClick={() => setMood(null)} style={{ fontFamily: fonts.sans, fontSize: 11, color: colors.text3, cursor: 'pointer' }}>
+              Change
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+
   // === Time-based section ordering ===
   // Top sections shift; bottom half (standalone1, weekly, ritual, team, playlists, watch, vision, movement, groups, standalone2) stays fixed
   const getTimeSections = () => {
     if (timeOfDay === 'night') {
       return [
         heroSection,
+        moodSection,
         statsSection,
         stillnessSection,
         suggestionSection,
@@ -726,6 +851,7 @@ export default function Home() {
     if (timeOfDay === 'evening') {
       return [
         heroSection,
+        moodSection,
         suggestionSection,
         journalGratitudeSection,
         statsSection,
@@ -735,6 +861,7 @@ export default function Home() {
     // morning + afternoon
     return [
       heroSection,
+      moodSection,
       suggestionSection,
       statsSection,
       journalGratitudeSection,
