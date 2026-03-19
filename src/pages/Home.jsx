@@ -421,15 +421,295 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ========== MONSTERA ========== */}
-      <div style={{ position: 'relative', height: 480, marginBottom: 4 }}>
-        <img src="/monstera.jpg" alt="" style={{
-          width: '100%', height: '100%', objectFit: 'cover',
-        }} />
+      {/* ========== MY TEAM — horizontal scroll ========== */}
+      <div style={{ padding: '24px 0 0' }}>
+        <div style={{ padding: '0 24px', marginBottom: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+          <p style={{
+            fontFamily: fonts.sans, fontSize: 10, fontWeight: 600,
+            color: colors.text3, letterSpacing: 3, textTransform: 'uppercase',
+          }}>
+            My Team
+          </p>
+          <span style={{
+            fontFamily: fonts.sans, fontSize: 11, fontWeight: 500,
+            color: colors.text3, cursor: 'pointer',
+          }}>
+            See All
+          </span>
+        </div>
+        <div style={{
+          display: 'flex', gap: 14, overflowX: 'auto',
+          paddingLeft: 24, paddingRight: 24, paddingBottom: 4,
+        }}>
+          {[
+            { name: 'Sarah M.', role: 'Pilates', initial: 'S', bg: '#2A2520' },
+            { name: 'Amara J.', role: 'Breathwork', initial: 'A', bg: '#1E2A20' },
+            { name: 'Nadia C.', role: 'Hypnotherapy', initial: 'N', bg: '#201E2A' },
+            { name: 'Find New', role: 'Practitioner', initial: '+', bg: 'transparent' },
+          ].map((p, i) => (
+            <div key={i} style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center',
+              gap: 8, cursor: 'pointer', flexShrink: 0, minWidth: 72,
+            }}>
+              <div style={{
+                width: 56, height: 56, borderRadius: 28,
+                background: p.bg,
+                border: p.bg === 'transparent' ? `1px dashed ${colors.border}` : 'none',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <span style={{
+                  fontFamily: fonts.sans, fontSize: p.initial === '+' ? 20 : 18,
+                  fontWeight: 300, color: p.initial === '+' ? colors.text3 : '#fff',
+                }}>
+                  {p.initial}
+                </span>
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <p style={{ fontFamily: fonts.sans, fontSize: 11, fontWeight: 500, color: colors.text }}>
+                  {p.name}
+                </p>
+                <p style={{ fontFamily: fonts.sans, fontSize: 9, color: colors.text3 }}>
+                  {p.role}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* ========== MIND BODY HEART ========== */}
-      <div style={{ position: 'relative', height: 420, marginBottom: 4 }}>
+      {/* ========== PLAYLISTS — horizontal scroll ========== */}
+      <div style={{ padding: '24px 0 0' }}>
+        <div style={{ padding: '0 24px', marginBottom: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+          <p style={{
+            fontFamily: fonts.sans, fontSize: 10, fontWeight: 600,
+            color: colors.text3, letterSpacing: 3, textTransform: 'uppercase',
+          }}>
+            Playlists
+          </p>
+        </div>
+        <div style={{
+          display: 'flex', gap: 12, overflowX: 'auto',
+          paddingLeft: 24, paddingRight: 24, paddingBottom: 4,
+        }}>
+          {[
+            { title: 'Morning Ritual', curator: 'Sarah M.', color: '#2A2520', tracks: 12 },
+            { title: 'Deep Focus', curator: 'Amara J.', color: '#1E2A20', tracks: 18 },
+            { title: 'Wind Down', curator: 'Nadia C.', color: '#201E2A', tracks: 9 },
+            { title: 'Movement Energy', curator: 'Sarah M.', color: '#2A2020', tracks: 15 },
+          ].map((pl, i) => (
+            <div key={i} style={{
+              minWidth: 150, borderRadius: 14, overflow: 'hidden',
+              background: pl.color, cursor: 'pointer', flexShrink: 0,
+            }}>
+              <div style={{
+                height: 100, background: `linear-gradient(135deg, ${pl.color} 0%, rgba(255,255,255,0.05) 100%)`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <svg width={28} height={28} viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth={1.5}>
+                  <path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" />
+                </svg>
+              </div>
+              <div style={{ padding: '12px 14px 14px' }}>
+                <p style={{
+                  fontFamily: fonts.sans, fontSize: 13, fontWeight: 600,
+                  color: '#fff', marginBottom: 3,
+                }}>
+                  {pl.title}
+                </p>
+                <p style={{
+                  fontFamily: fonts.sans, fontSize: 10, color: 'rgba(255,255,255,0.4)',
+                }}>
+                  {pl.curator} &middot; {pl.tracks} tracks
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ========== WATCH — YouTube embeds horizontal scroll ========== */}
+      <div style={{ padding: '24px 0 0' }}>
+        <div style={{ padding: '0 24px', marginBottom: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+          <p style={{
+            fontFamily: fonts.sans, fontSize: 10, fontWeight: 600,
+            color: colors.text3, letterSpacing: 3, textTransform: 'uppercase',
+          }}>
+            Watch
+          </p>
+        </div>
+        <div style={{
+          display: 'flex', gap: 12, overflowX: 'auto',
+          paddingLeft: 24, paddingRight: 24, paddingBottom: 4,
+        }}>
+          {[
+            { title: 'Morning Breathwork', by: 'Amara J.', duration: '12 min' },
+            { title: 'Guided Visualization', by: 'Nadia C.', duration: '20 min' },
+            { title: 'Gratitude Practice', by: 'Sarah M.', duration: '8 min' },
+            { title: 'Body Scan Meditation', by: 'Amara J.', duration: '15 min' },
+          ].map((vid, i) => (
+            <div key={i} style={{
+              minWidth: 200, borderRadius: 14, overflow: 'hidden',
+              background: colors.surface, cursor: 'pointer', flexShrink: 0,
+            }}>
+              <div style={{
+                height: 112, background: `linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%)`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                position: 'relative',
+              }}>
+                {/* Play button */}
+                <div style={{
+                  width: 40, height: 40, borderRadius: 20,
+                  background: 'rgba(255,255,255,0.15)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <svg width={14} height={14} viewBox="0 0 24 24" fill="#fff">
+                    <polygon points="6 3 20 12 6 21" />
+                  </svg>
+                </div>
+                <span style={{
+                  position: 'absolute', bottom: 8, right: 10,
+                  fontFamily: fonts.sans, fontSize: 10, color: 'rgba(255,255,255,0.5)',
+                }}>
+                  {vid.duration}
+                </span>
+              </div>
+              <div style={{ padding: '12px 14px 14px' }}>
+                <p style={{
+                  fontFamily: fonts.sans, fontSize: 13, fontWeight: 600,
+                  color: colors.text, marginBottom: 3,
+                }}>
+                  {vid.title}
+                </p>
+                <p style={{
+                  fontFamily: fonts.sans, fontSize: 10, color: colors.text3,
+                }}>
+                  {vid.by}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ========== JOURNAL — recent entries horizontal scroll ========== */}
+      <div style={{ padding: '24px 0 0' }}>
+        <div style={{ padding: '0 24px', marginBottom: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+          <p style={{
+            fontFamily: fonts.sans, fontSize: 10, fontWeight: 600,
+            color: colors.text3, letterSpacing: 3, textTransform: 'uppercase',
+          }}>
+            Journal
+          </p>
+          <span style={{
+            fontFamily: fonts.sans, fontSize: 11, fontWeight: 500,
+            color: colors.text3, cursor: 'pointer',
+          }}>
+            Open
+          </span>
+        </div>
+        <div style={{
+          display: 'flex', gap: 12, overflowX: 'auto',
+          paddingLeft: 24, paddingRight: 24, paddingBottom: 4,
+        }}>
+          {[
+            { text: 'Woke up grateful. The sun came through my window and I just sat there for a moment.', time: '2h ago' },
+            { text: 'Finished a 30-minute meditation for the first time. My mind wandered but I stayed.', time: 'Yesterday' },
+            { text: 'I am letting go of who I think I should be and becoming who I am.', time: '2 days ago' },
+          ].map((entry, i) => (
+            <div key={i} style={{
+              minWidth: 220, borderRadius: 14,
+              background: colors.surface, padding: '16px 18px',
+              cursor: 'pointer', flexShrink: 0,
+              display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+              minHeight: 120,
+            }}>
+              <p style={{
+                fontFamily: fonts.sans, fontSize: 13, fontWeight: 400,
+                color: colors.text2, lineHeight: 1.5,
+                display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+              }}>
+                {entry.text}
+              </p>
+              <p style={{
+                fontFamily: fonts.sans, fontSize: 10, color: colors.text3, marginTop: 10,
+              }}>
+                {entry.time}
+              </p>
+            </div>
+          ))}
+          {/* New entry card */}
+          <div style={{
+            minWidth: 120, borderRadius: 14,
+            border: `1px dashed ${colors.border}`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', flexShrink: 0,
+            minHeight: 120,
+          }}>
+            <div style={{ textAlign: 'center' }}>
+              <span style={{ fontFamily: fonts.sans, fontSize: 24, color: colors.text3, display: 'block' }}>+</span>
+              <span style={{ fontFamily: fonts.sans, fontSize: 10, color: colors.text3, marginTop: 4, display: 'block' }}>New Entry</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ========== GROUPS — horizontal scroll ========== */}
+      <div style={{ padding: '24px 0 0' }}>
+        <div style={{ padding: '0 24px', marginBottom: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+          <p style={{
+            fontFamily: fonts.sans, fontSize: 10, fontWeight: 600,
+            color: colors.text3, letterSpacing: 3, textTransform: 'uppercase',
+          }}>
+            Groups
+          </p>
+          <span style={{
+            fontFamily: fonts.sans, fontSize: 11, fontWeight: 500,
+            color: colors.text3, cursor: 'pointer',
+          }}>
+            See All
+          </span>
+        </div>
+        <div style={{
+          display: 'flex', gap: 12, overflowX: 'auto',
+          paddingLeft: 24, paddingRight: 24, paddingBottom: 4,
+        }}>
+          {[
+            { name: 'Morning Ritual Circle', members: 248 },
+            { name: 'Manifestation Lab', members: 412 },
+            { name: 'Pilates Sisters', members: 186 },
+            { name: 'Book of the Month', members: 324 },
+          ].map((group, i) => (
+            <div key={i} style={{
+              minWidth: 150, height: 90, borderRadius: 14,
+              background: colors.surface, padding: '14px 16px',
+              display: 'flex', flexDirection: 'column', justifyContent: 'flex-end',
+              cursor: 'pointer', flexShrink: 0,
+            }}>
+              <p style={{ fontFamily: fonts.sans, fontSize: 13, fontWeight: 600, color: '#fff', lineHeight: 1.3, marginBottom: 4 }}>
+                {group.name}
+              </p>
+              <p style={{ fontFamily: fonts.sans, fontSize: 10, color: colors.text3 }}>
+                {group.members} members
+              </p>
+            </div>
+          ))}
+          <div style={{
+            minWidth: 100, height: 90, borderRadius: 14,
+            border: `1px dashed ${colors.border}`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', flexShrink: 0,
+          }}>
+            <div style={{ textAlign: 'center' }}>
+              <span style={{ fontFamily: fonts.sans, fontSize: 20, color: colors.text3 }}>+</span>
+              <span style={{ fontFamily: fonts.sans, fontSize: 10, color: colors.text3, display: 'block' }}>Create</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ========== CONNECTING MIND BODY HEART — mood image ========== */}
+      <div style={{ position: 'relative', height: 320, marginTop: 24, marginBottom: 4 }}>
         <img src="/mindbody.jpg" alt="" style={{
           width: '100%', height: '100%', objectFit: 'cover',
         }} />
