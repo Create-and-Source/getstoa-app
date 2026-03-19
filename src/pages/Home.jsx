@@ -538,121 +538,193 @@ export default function Home() {
     </div>
   )
 
+  // === Customizable tracker system ===
+  const TRACKER_LIBRARY = [
+    { key: 'water', label: 'Water', unit: 'glasses', goal: 8, icon: 'drop' },
+    { key: 'movement', label: 'Movement', unit: 'min', goal: 30, icon: 'walk' },
+    { key: 'stillness', label: 'Stillness', unit: 'min', goal: 20, icon: 'clock' },
+    { key: 'sleep', label: 'Sleep', unit: 'hrs', goal: 8, icon: 'moon' },
+    { key: 'reading', label: 'Reading', unit: 'min', goal: 30, icon: 'book' },
+    { key: 'stretching', label: 'Stretching', unit: 'min', goal: 15, icon: 'stretch' },
+    { key: 'breathwork', label: 'Breathwork', unit: 'min', goal: 10, icon: 'wind' },
+    { key: 'protein', label: 'Protein', unit: 'servings', goal: 4, icon: 'leaf' },
+    { key: 'steps', label: 'Steps', unit: 'k', goal: 10, icon: 'steps' },
+    { key: 'gratitude', label: 'Gratitude', unit: 'entries', goal: 3, icon: 'heart' },
+    { key: 'screenbreak', label: 'Screen Breaks', unit: 'breaks', goal: 5, icon: 'eye' },
+    { key: 'supplements', label: 'Supplements', unit: 'taken', goal: 3, icon: 'plus' },
+  ]
+
+  const [activeTrackers, setActiveTrackers] = useState(() => {
+    try {
+      const stored = localStorage.getItem('stoa-trackers')
+      if (stored) return JSON.parse(stored)
+    } catch {}
+    return ['water', 'movement', 'stillness', 'sleep']
+  })
+
+  const [trackerValues, setTrackerValues] = useState(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem('stoa-tracker-values') || '{}')
+      return stored[todayKey] || {}
+    } catch { return {} }
+  })
+
+  const [showTrackerPicker, setShowTrackerPicker] = useState(false)
+
+  function incrementTracker(key) {
+    setTrackerValues(prev => {
+      const tracker = TRACKER_LIBRARY.find(t => t.key === key)
+      const max = tracker ? tracker.goal * 2 : 99
+      const next = { ...prev, [key]: Math.min((prev[key] || 0) + 1, max) }
+      try {
+        const stored = JSON.parse(localStorage.getItem('stoa-tracker-values') || '{}')
+        stored[todayKey] = next
+        localStorage.setItem('stoa-tracker-values', JSON.stringify(stored))
+      } catch {}
+      // Keep water in sync
+      if (key === 'water') {
+        try {
+          const waterStored = JSON.parse(localStorage.getItem('stoa-water') || '{}')
+          waterStored[todayKey] = next[key]
+          localStorage.setItem('stoa-water', JSON.stringify(waterStored))
+        } catch {}
+        setWaterCount(next[key])
+      }
+      return next
+    })
+  }
+
+  function decrementTracker(key) {
+    setTrackerValues(prev => {
+      const next = { ...prev, [key]: Math.max((prev[key] || 0) - 1, 0) }
+      try {
+        const stored = JSON.parse(localStorage.getItem('stoa-tracker-values') || '{}')
+        stored[todayKey] = next
+        localStorage.setItem('stoa-tracker-values', JSON.stringify(stored))
+      } catch {}
+      if (key === 'water') {
+        try {
+          const waterStored = JSON.parse(localStorage.getItem('stoa-water') || '{}')
+          waterStored[todayKey] = next[key]
+          localStorage.setItem('stoa-water', JSON.stringify(waterStored))
+        } catch {}
+        setWaterCount(next[key])
+      }
+      return next
+    })
+  }
+
+  function toggleTrackerChoice(key) {
+    setActiveTrackers(prev => {
+      const next = prev.includes(key)
+        ? prev.filter(k => k !== key)
+        : [...prev, key]
+      localStorage.setItem('stoa-trackers', JSON.stringify(next))
+      return next
+    })
+  }
+
+  const trackerIcon = (icon) => {
+    const props = { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: colors.text2, strokeWidth: 1.5, strokeLinecap: 'round' }
+    switch (icon) {
+      case 'drop': return <svg {...props}><path d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0z" /></svg>
+      case 'walk': return <svg {...props}><path d="M13 4v4l3 3M9 20l3-6 3 6M12 4a1 1 0 100-2 1 1 0 000 2z" /><path d="M7 20h10" /></svg>
+      case 'clock': return <svg {...props}><circle cx="12" cy="12" r="10" /><path d="M12 6v6l3 3" /></svg>
+      case 'moon': return <svg {...props}><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" /></svg>
+      case 'book': return <svg {...props}><path d="M4 19.5A2.5 2.5 0 016.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" /></svg>
+      case 'stretch': return <svg {...props}><circle cx="12" cy="4" r="2" /><path d="M4 17l4-4 4 4 4-4 4 4" /></svg>
+      case 'wind': return <svg {...props}><path d="M9.59 4.59A2 2 0 1111 8H2m10.59 11.41A2 2 0 1014 16H2m15.73-8.27A2.5 2.5 0 1119.5 12H2" /></svg>
+      case 'leaf': return <svg {...props}><path d="M11 20A7 7 0 015 8h14a7 7 0 01-6 12v0" /><path d="M12 8v12" /></svg>
+      case 'steps': return <svg {...props}><path d="M4 16l4-8 4 8 4-8 4 8" /></svg>
+      case 'heart': return <svg {...props}><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" /></svg>
+      case 'eye': return <svg {...props}><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
+      case 'plus': return <svg {...props}><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+      default: return <svg {...props}><circle cx="12" cy="12" r="10" /></svg>
+    }
+  }
+
   const statsSection = (
     <div style={{ padding: '24px 20px 0' }}>
-      <p style={{
-        fontFamily: fonts.sans, fontSize: 10, fontWeight: 600,
-        color: colors.text3, letterSpacing: 3, textTransform: 'uppercase',
-        marginBottom: 14, paddingLeft: 4,
-      }}>
-        {stats.header}
-      </p>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, paddingLeft: 4, paddingRight: 4 }}>
+        <p style={{
+          fontFamily: fonts.sans, fontSize: 10, fontWeight: 600,
+          color: colors.text3, letterSpacing: 3, textTransform: 'uppercase',
+        }}>
+          Today
+        </p>
+        <p onClick={() => setShowTrackerPicker(!showTrackerPicker)} style={{
+          fontFamily: fonts.sans, fontSize: 11, color: colors.text3, cursor: 'pointer',
+        }}>
+          {showTrackerPicker ? 'Done' : 'Edit'}
+        </p>
+      </div>
 
+      {/* Tracker picker */}
+      {showTrackerPicker && (
+        <div style={{
+          background: colors.surface, borderRadius: 14, padding: '16px 18px',
+          border: `1px solid ${colors.border}`, marginBottom: 14,
+        }}>
+          <p style={{ fontFamily: fonts.sans, fontSize: 12, color: colors.text2, marginBottom: 12 }}>
+            Choose what to track
+          </p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {TRACKER_LIBRARY.map(t => {
+              const active = activeTrackers.includes(t.key)
+              return (
+                <div key={t.key} onClick={() => toggleTrackerChoice(t.key)} style={{
+                  padding: '7px 14px', borderRadius: radius.pill, cursor: 'pointer',
+                  background: active ? 'rgba(255,255,255,0.1)' : 'transparent',
+                  border: `1px solid ${active ? 'rgba(255,255,255,0.2)' : colors.border}`,
+                  fontFamily: fonts.sans, fontSize: 12, color: active ? '#fff' : colors.text3,
+                  transition: 'all 0.2s',
+                }}>
+                  {t.label}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Active tracker cards */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
-        {/* Walk */}
-        <div style={{
-          background: colors.surface, borderRadius: 14, padding: '18px 16px',
-          display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-          minHeight: 120, position: 'relative', overflow: 'hidden',
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.text2} strokeWidth={1.5} strokeLinecap="round">
-              <path d="M13 4v4l3 3M9 20l3-6 3 6M12 4a1 1 0 100-2 1 1 0 000 2z" />
-              <path d="M7 20h10" />
-            </svg>
-            <span style={{ fontFamily: fonts.sans, fontSize: 9, fontWeight: 600, color: colors.text3, letterSpacing: 1, textTransform: 'uppercase' }}>Walk</span>
-          </div>
-          <div>
-            <p style={{ fontFamily: fonts.sans, fontSize: 28, fontWeight: 300, color: colors.text, lineHeight: 1 }}>
-              {stats.walk.value} <span style={{ fontSize: 13, color: colors.text2 }}>{stats.walk.label}</span>
-            </p>
-            <p style={{ fontFamily: fonts.sans, fontSize: 11, color: colors.text3, marginTop: 4 }}>{stats.walk.sub}</p>
-            <StatBar value={stats.walk.value} goal={stats.walk.goal} />
-          </div>
-        </div>
-
-        {/* Stillness */}
-        <div style={{
-          background: colors.surface, borderRadius: 14, padding: '18px 16px',
-          display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-          minHeight: 120, position: 'relative', overflow: 'hidden',
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.text2} strokeWidth={1.5} strokeLinecap="round">
-              <circle cx="12" cy="12" r="10" />
-              <path d="M12 6v6l3 3" />
-            </svg>
-            <span style={{ fontFamily: fonts.sans, fontSize: 9, fontWeight: 600, color: colors.text3, letterSpacing: 1, textTransform: 'uppercase' }}>Stillness</span>
-          </div>
-          <div>
-            <p style={{ fontFamily: fonts.sans, fontSize: 28, fontWeight: 300, color: colors.text, lineHeight: 1 }}>
-              {stats.stillness.value} <span style={{ fontSize: 13, color: colors.text2 }}>{stats.stillness.label}</span>
-            </p>
-            <p style={{ fontFamily: fonts.sans, fontSize: 11, color: colors.text3, marginTop: 4 }}>{stats.stillness.sub}</p>
-            <StatBar value={stats.stillness.value} goal={stats.stillness.goal} />
-          </div>
-        </div>
-
-        {/* Water — tappable */}
-        <div onClick={addWater} style={{
-          background: colors.surface, borderRadius: 14, padding: '18px 16px',
-          display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-          minHeight: 120, position: 'relative', overflow: 'hidden', cursor: 'pointer',
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.text2} strokeWidth={1.5} strokeLinecap="round">
-              <path d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0z" />
-            </svg>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              {waterCount > 0 && (
-                <span onClick={(e) => { e.stopPropagation(); removeWater() }} style={{
-                  fontFamily: fonts.sans, fontSize: 14, color: colors.text3, cursor: 'pointer', padding: '0 4px',
-                }}>−</span>
-              )}
-              <span style={{ fontFamily: fonts.sans, fontSize: 9, fontWeight: 600, color: colors.text3, letterSpacing: 1, textTransform: 'uppercase' }}>Water</span>
+        {activeTrackers.map(key => {
+          const tracker = TRACKER_LIBRARY.find(t => t.key === key)
+          if (!tracker) return null
+          const val = trackerValues[key] || (key === 'water' ? waterCount : 0)
+          const atGoal = val >= tracker.goal
+          return (
+            <div key={key} onClick={() => incrementTracker(key)} style={{
+              background: colors.surface, borderRadius: 14, padding: '18px 16px',
+              display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+              minHeight: 120, position: 'relative', overflow: 'hidden', cursor: 'pointer',
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                {trackerIcon(tracker.icon)}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  {val > 0 && (
+                    <span onClick={(e) => { e.stopPropagation(); decrementTracker(key) }} style={{
+                      fontFamily: fonts.sans, fontSize: 14, color: colors.text3, cursor: 'pointer', padding: '0 4px',
+                    }}>−</span>
+                  )}
+                  <span style={{ fontFamily: fonts.sans, fontSize: 9, fontWeight: 600, color: colors.text3, letterSpacing: 1, textTransform: 'uppercase' }}>
+                    {tracker.label}
+                  </span>
+                </div>
+              </div>
+              <div>
+                <p style={{ fontFamily: fonts.sans, fontSize: 28, fontWeight: 300, color: colors.text, lineHeight: 1 }}>
+                  {val} <span style={{ fontSize: 13, color: colors.text2 }}>of {tracker.goal}</span>
+                </p>
+                <p style={{ fontFamily: fonts.sans, fontSize: 11, color: colors.text3, marginTop: 4 }}>
+                  {atGoal ? 'goal reached!' : `${tracker.unit} · tap to add`}
+                </p>
+                <StatBar value={val} goal={tracker.goal} />
+              </div>
             </div>
-          </div>
-          <div>
-            <p style={{ fontFamily: fonts.sans, fontSize: 28, fontWeight: 300, color: colors.text, lineHeight: 1 }}>
-              {waterCount} <span style={{ fontSize: 13, color: colors.text2 }}>of 8</span>
-            </p>
-            <p style={{ fontFamily: fonts.sans, fontSize: 11, color: colors.text3, marginTop: 4 }}>
-              {waterCount >= 8 ? 'goal reached!' : 'tap to add a glass'}
-            </p>
-            <StatBar value={waterCount} goal={8} />
-          </div>
-          {/* Water fill dots */}
-          <div style={{ display: 'flex', gap: 3, marginTop: 8 }}>
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} style={{
-                width: 6, height: 6, borderRadius: 3,
-                background: i < waterCount ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.08)',
-                transition: 'background 0.2s',
-              }} />
-            ))}
-          </div>
-        </div>
-
-        {/* Sleep */}
-        <div style={{
-          background: colors.surface, borderRadius: 14, padding: '18px 16px',
-          display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-          minHeight: 120, position: 'relative', overflow: 'hidden',
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.text2} strokeWidth={1.5} strokeLinecap="round">
-              <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
-            </svg>
-            <span style={{ fontFamily: fonts.sans, fontSize: 9, fontWeight: 600, color: colors.text3, letterSpacing: 1, textTransform: 'uppercase' }}>Sleep</span>
-          </div>
-          <div>
-            <p style={{ fontFamily: fonts.sans, fontSize: 28, fontWeight: 300, color: colors.text, lineHeight: 1 }}>
-              {stats.sleep.value} <span style={{ fontSize: 13, color: colors.text2 }}>{stats.sleep.label}</span>
-            </p>
-            <p style={{ fontFamily: fonts.sans, fontSize: 11, color: colors.text3, marginTop: 4 }}>{stats.sleep.sub}</p>
-            <StatBar value={parseFloat(stats.sleep.value)} goal={parseFloat(stats.sleep.goal)} />
-          </div>
-        </div>
+          )
+        })}
       </div>
     </div>
   )
