@@ -1,5 +1,19 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { colors, fonts, radius } from '../theme'
+
+const CLEAN_PHOTOS = [
+  '/skin.jpg', '/mudra.jpg', '/palo-santo.jpg', '/mindbody.jpg', '/monstera.jpg',
+  '/crystal.jpg', '/leaf-dark.jpg', '/connection.jpg', '/yoga.jpg', '/sage-bowl.jpg',
+]
+
+function shuffle(arr) {
+  const a = [...arr]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
 
 const JOURNAL_ENTRIES = [
   { user: 'Sarah M.', text: 'Woke up grateful. The sun came through my window and I just sat there for a moment.', hearts: 4, time: '2 hours ago', hasPhoto: false },
@@ -23,6 +37,7 @@ const GROUPS = [
 
 export default function Community() {
   const [activeTab, setActiveTab] = useState('journal')
+  const dividerPhoto = useMemo(() => shuffle(CLEAN_PHOTOS)[0], [])
 
   return (
     <div style={{
@@ -228,19 +243,12 @@ export default function Community() {
         </div>
       )}
 
-      {/* Full-bleed divider image */}
-      <div style={{ position: 'relative', height: 280, marginBottom: 4 }}>
-        <img src="/monstera.jpg" alt="" style={{
-          width: '100%', height: '100%', objectFit: 'cover',
-        }} />
-        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.2)' }} />
-        <div style={{
-          position: 'absolute', bottom: 28, left: 0, right: 0, textAlign: 'center',
-        }}>
-          <p style={{
-            fontFamily: fonts.sans, fontSize: 15, fontWeight: 300,
-            color: '#fff', letterSpacing: 0.5,
-          }}>
+      {/* Divider image — rounded, smaller */}
+      <div style={{ position: 'relative', margin: '0 16px 4px', borderRadius: 16, overflow: 'hidden', height: 180 }}>
+        <img src={dividerPhoto} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.25)' }} />
+        <div style={{ position: 'absolute', bottom: 24, left: 0, right: 0, textAlign: 'center' }}>
+          <p style={{ fontFamily: fonts.sans, fontSize: 15, fontWeight: 300, color: '#fff', letterSpacing: 0.5 }}>
             We grow together.
           </p>
         </div>

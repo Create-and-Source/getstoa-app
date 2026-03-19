@@ -1,13 +1,28 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { colors, fonts, radius } from '../theme'
 
-const SOUNDSCAPES = [
-  { name: 'Rain', icon: '/' },
-  { name: 'Ocean', icon: '/' },
-  { name: 'Forest', icon: '/' },
-  { name: 'Fire', icon: '/' },
-  { name: 'Night', icon: '/' },
+// Clean photos — safe for text overlay
+const CLEAN_PHOTOS = [
+  '/skin.jpg', '/mudra.jpg', '/palo-santo.jpg', '/mindbody.jpg', '/monstera.jpg',
+  '/crystal.jpg', '/leaf-dark.jpg', '/connection.jpg', '/yoga.jpg', '/sage-bowl.jpg',
 ]
+
+// Photos with text baked in — show standalone only
+const TEXT_PHOTOS = [
+  '/live-slowly.jpg', '/bodymindssoul.jpg', '/meditation.jpg', '/soul.jpg',
+  '/whole.jpg', '/water.jpg', '/harmony.jpg', '/routines.jpg',
+]
+
+function shuffle(arr) {
+  const a = [...arr]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
+
+const SOUNDSCAPES = ['Rain', 'Ocean', 'Forest', 'Fire', 'Night']
 
 const AUDIO_LIBRARY = [
   { title: 'Body Scan Meditation', practitioner: 'Amara J.', duration: '15 min', color: '#1E2A20' },
@@ -31,22 +46,27 @@ export default function Mind() {
   const [activeSound, setActiveSound] = useState(null)
   const intervalRef = useRef(null)
 
+  // Pick random photos on mount
+  const photos = useMemo(() => {
+    const clean = shuffle(CLEAN_PHOTOS)
+    const text = shuffle(TEXT_PHOTOS)
+    return {
+      hero: clean[0],         // text overlay "Stillness"
+      dividerQuote: clean[1], // text overlay with quote
+      standalone: text[0],    // has its own text
+    }
+  }, [])
+
   useEffect(() => {
     if (!breathing) {
       setBreathScale(1)
       if (intervalRef.current) clearInterval(intervalRef.current)
       return
     }
-
     let phase = 0
     const cycle = () => {
-      if (phase % 2 === 0) {
-        setBreathPhase('inhale')
-        setBreathScale(1.5)
-      } else {
-        setBreathPhase('exhale')
-        setBreathScale(1)
-      }
+      if (phase % 2 === 0) { setBreathPhase('inhale'); setBreathScale(1.5) }
+      else { setBreathPhase('exhale'); setBreathScale(1) }
       phase++
     }
     cycle()
@@ -55,43 +75,27 @@ export default function Mind() {
   }, [breathing])
 
   return (
-    <div style={{
-      height: '100%',
-      overflowY: 'auto',
-      paddingBottom: 140,
-      background: colors.bg,
-    }}>
-      {/* Hero image */}
-      <div style={{ position: 'relative', height: 360 }}>
-        <img src="/mudra.jpg" alt="" style={{
-          width: '100%', height: '100%', objectFit: 'cover',
-        }} />
+    <div style={{ height: '100%', overflowY: 'auto', paddingBottom: 140, background: colors.bg }}>
+
+      {/* Hero image — rounded, shorter */}
+      <div style={{ position: 'relative', height: 300, margin: '8px 16px 0', borderRadius: 20, overflow: 'hidden' }}>
+        <img src={photos.hero} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         <div style={{
           position: 'absolute', inset: 0,
-          background: 'linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, rgba(13,13,13,1) 100%)',
+          background: 'linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(13,13,13,0.9) 100%)',
         }} />
-        <div style={{ position: 'absolute', bottom: 32, left: 24, right: 24 }}>
-          <p style={{
-            fontFamily: fonts.sans, fontSize: 10, fontWeight: 600,
-            color: 'rgba(255,255,255,0.4)', letterSpacing: 3, textTransform: 'uppercase',
-            marginBottom: 6,
-          }}>
+        <div style={{ position: 'absolute', bottom: 28, left: 24, right: 24 }}>
+          <p style={{ fontFamily: fonts.sans, fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.4)', letterSpacing: 3, textTransform: 'uppercase', marginBottom: 6 }}>
             Your sanctuary
           </p>
-          <h1 style={{
-            fontFamily: fonts.sans, fontSize: 28, fontWeight: 300,
-            color: '#fff', lineHeight: 1.2,
-          }}>
+          <h1 style={{ fontFamily: fonts.sans, fontSize: 28, fontWeight: 300, color: '#fff', lineHeight: 1.2 }}>
             Stillness
           </h1>
         </div>
       </div>
 
       {/* Breathing Exercise */}
-      <div style={{
-        padding: '36px 24px 32px',
-        display: 'flex', flexDirection: 'column', alignItems: 'center',
-      }}>
+      <div style={{ padding: '36px 24px 32px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <div
           onClick={() => setBreathing(!breathing)}
           style={{
@@ -99,69 +103,48 @@ export default function Mind() {
             background: 'radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%)',
             border: '1px solid rgba(255,255,255,0.15)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer',
-            transform: `scale(${breathScale})`,
-            transition: 'transform 4s ease-in-out',
+            cursor: 'pointer', transform: `scale(${breathScale})`, transition: 'transform 4s ease-in-out',
           }}
         >
-          <span style={{
-            fontFamily: fonts.sans, fontSize: 13, fontWeight: 300,
-            color: colors.text2, letterSpacing: 1,
-          }}>
+          <span style={{ fontFamily: fonts.sans, fontSize: 13, fontWeight: 300, color: colors.text2, letterSpacing: 1 }}>
             {breathing ? breathPhase : 'begin'}
           </span>
         </div>
-        <p style={{
-          fontFamily: fonts.sans, fontSize: 11,
-          color: colors.text3, marginTop: 16,
-        }}>
+        <p style={{ fontFamily: fonts.sans, fontSize: 11, color: colors.text3, marginTop: 16 }}>
           {breathing ? 'Tap to stop' : 'Tap to breathe'}
         </p>
       </div>
 
       {/* Soundscapes */}
       <div style={{ padding: '0 24px 28px' }}>
-        <p style={{
-          fontFamily: fonts.sans, fontSize: 10, fontWeight: 600,
-          color: colors.text3, letterSpacing: 3, textTransform: 'uppercase',
-          marginBottom: 14,
-        }}>
+        <p style={{ fontFamily: fonts.sans, fontSize: 10, fontWeight: 600, color: colors.text3, letterSpacing: 3, textTransform: 'uppercase', marginBottom: 14 }}>
           Soundscapes
         </p>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {SOUNDSCAPES.map(s => (
             <button
-              key={s.name}
-              onClick={() => setActiveSound(activeSound === s.name ? null : s.name)}
+              key={s}
+              onClick={() => setActiveSound(activeSound === s ? null : s)}
               style={{
                 fontFamily: fonts.sans, fontSize: 12, fontWeight: 500,
-                color: activeSound === s.name ? '#fff' : colors.text2,
-                background: activeSound === s.name ? 'rgba(255,255,255,0.12)' : colors.surface,
-                border: `1px solid ${activeSound === s.name ? 'rgba(255,255,255,0.2)' : 'transparent'}`,
-                borderRadius: radius.pill,
-                padding: '10px 18px', cursor: 'pointer',
-                transition: 'all 0.2s',
+                color: activeSound === s ? '#fff' : colors.text2,
+                background: activeSound === s ? 'rgba(255,255,255,0.12)' : colors.surface,
+                border: `1px solid ${activeSound === s ? 'rgba(255,255,255,0.2)' : 'transparent'}`,
+                borderRadius: radius.pill, padding: '10px 18px', cursor: 'pointer', transition: 'all 0.2s',
               }}
             >
-              {s.name}
+              {s}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Full-bleed divider */}
-      <div style={{ position: 'relative', height: 280, marginBottom: 4 }}>
-        <img src="/harmony.jpg" alt="" style={{
-          width: '100%', height: '100%', objectFit: 'cover',
-        }} />
-        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)' }} />
-        <div style={{
-          position: 'absolute', bottom: 28, left: 0, right: 0, textAlign: 'center',
-        }}>
-          <p style={{
-            fontFamily: fonts.sans, fontSize: 14, fontWeight: 300,
-            color: 'rgba(255,255,255,0.7)', letterSpacing: 0.5, fontStyle: 'italic',
-          }}>
+      {/* Divider — quote on clean photo */}
+      <div style={{ position: 'relative', margin: '0 16px 4px', borderRadius: 16, overflow: 'hidden', height: 180 }}>
+        <img src={photos.dividerQuote} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)' }} />
+        <div style={{ position: 'absolute', bottom: 24, left: 0, right: 0, textAlign: 'center', padding: '0 24px' }}>
+          <p style={{ fontFamily: fonts.sans, fontSize: 14, fontWeight: 300, color: 'rgba(255,255,255,0.8)', letterSpacing: 0.5, fontStyle: 'italic' }}>
             "The quieter you become, the more you can hear."
           </p>
         </div>
@@ -170,55 +153,20 @@ export default function Mind() {
       {/* Audio Library */}
       <div style={{ padding: '24px 0 0' }}>
         <div style={{ padding: '0 24px', marginBottom: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-          <p style={{
-            fontFamily: fonts.sans, fontSize: 10, fontWeight: 600,
-            color: colors.text3, letterSpacing: 3, textTransform: 'uppercase',
-          }}>
-            Audio Library
-          </p>
-          <span style={{
-            fontFamily: fonts.sans, fontSize: 11, fontWeight: 500,
-            color: colors.text3, cursor: 'pointer',
-          }}>
-            See All
-          </span>
+          <p style={{ fontFamily: fonts.sans, fontSize: 10, fontWeight: 600, color: colors.text3, letterSpacing: 3, textTransform: 'uppercase' }}>Audio Library</p>
+          <span style={{ fontFamily: fonts.sans, fontSize: 11, fontWeight: 500, color: colors.text3, cursor: 'pointer' }}>See All</span>
         </div>
-        <div style={{
-          display: 'flex', gap: 12, overflowX: 'auto',
-          paddingLeft: 24, paddingRight: 24, paddingBottom: 4,
-        }}>
+        <div style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingLeft: 24, paddingRight: 24, paddingBottom: 4 }}>
           {AUDIO_LIBRARY.map((item, i) => (
-            <div key={i} style={{
-              minWidth: 160, borderRadius: 14, overflow: 'hidden',
-              background: item.color, cursor: 'pointer', flexShrink: 0,
-            }}>
-              <div style={{
-                height: 90,
-                background: `linear-gradient(135deg, ${item.color} 0%, rgba(255,255,255,0.04) 100%)`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <div style={{
-                  width: 36, height: 36, borderRadius: 18,
-                  background: 'rgba(255,255,255,0.1)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                  <svg width={14} height={14} viewBox="0 0 24 24" fill="#fff">
-                    <polygon points="6 3 20 12 6 21" />
-                  </svg>
+            <div key={i} style={{ minWidth: 160, borderRadius: 14, overflow: 'hidden', background: item.color, cursor: 'pointer', flexShrink: 0 }}>
+              <div style={{ height: 90, background: `linear-gradient(135deg, ${item.color} 0%, rgba(255,255,255,0.04) 100%)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ width: 36, height: 36, borderRadius: 18, background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <svg width={14} height={14} viewBox="0 0 24 24" fill="#fff"><polygon points="6 3 20 12 6 21" /></svg>
                 </div>
               </div>
               <div style={{ padding: '12px 14px 14px' }}>
-                <p style={{
-                  fontFamily: fonts.sans, fontSize: 13, fontWeight: 600,
-                  color: '#fff', marginBottom: 4, lineHeight: 1.3,
-                }}>
-                  {item.title}
-                </p>
-                <p style={{
-                  fontFamily: fonts.sans, fontSize: 10, color: 'rgba(255,255,255,0.4)',
-                }}>
-                  {item.practitioner} &middot; {item.duration}
-                </p>
+                <p style={{ fontFamily: fonts.sans, fontSize: 13, fontWeight: 600, color: '#fff', marginBottom: 4, lineHeight: 1.3 }}>{item.title}</p>
+                <p style={{ fontFamily: fonts.sans, fontSize: 10, color: 'rgba(255,255,255,0.4)' }}>{item.practitioner} &middot; {item.duration}</p>
               </div>
             </div>
           ))}
@@ -227,74 +175,42 @@ export default function Mind() {
 
       {/* Sleep Stories */}
       <div style={{ padding: '24px 24px 0' }}>
-        <p style={{
-          fontFamily: fonts.sans, fontSize: 10, fontWeight: 600,
-          color: colors.text3, letterSpacing: 3, textTransform: 'uppercase',
-          marginBottom: 14,
-        }}>
+        <p style={{ fontFamily: fonts.sans, fontSize: 10, fontWeight: 600, color: colors.text3, letterSpacing: 3, textTransform: 'uppercase', marginBottom: 14 }}>
           Sleep Stories
         </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {SLEEP_STORIES.map((story, i) => (
-            <div key={i} style={{
-              background: colors.surface, borderRadius: 14, padding: '16px 18px',
-              display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer',
-            }}>
-              <div style={{
-                width: 44, height: 44, borderRadius: 10,
-                background: 'rgba(255,255,255,0.04)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-              }}>
+            <div key={i} style={{ background: colors.surface, borderRadius: 14, padding: '16px 18px', display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer' }}>
+              <div style={{ width: 44, height: 44, borderRadius: 10, background: 'rgba(255,255,255,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.text3} strokeWidth={1.5} strokeLinecap="round">
                   <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
                 </svg>
               </div>
               <div style={{ flex: 1 }}>
-                <p style={{ fontFamily: fonts.sans, fontSize: 14, fontWeight: 500, color: colors.text, marginBottom: 2 }}>
-                  {story.title}
-                </p>
-                <p style={{ fontFamily: fonts.sans, fontSize: 11, color: colors.text3 }}>
-                  {story.narrator} &middot; {story.duration}
-                </p>
+                <p style={{ fontFamily: fonts.sans, fontSize: 14, fontWeight: 500, color: colors.text, marginBottom: 2 }}>{story.title}</p>
+                <p style={{ fontFamily: fonts.sans, fontSize: 11, color: colors.text3 }}>{story.narrator} &middot; {story.duration}</p>
               </div>
-              <svg width={14} height={14} viewBox="0 0 24 24" fill="rgba(255,255,255,0.3)">
-                <polygon points="6 3 20 12 6 21" />
-              </svg>
+              <svg width={14} height={14} viewBox="0 0 24 24" fill="rgba(255,255,255,0.3)"><polygon points="6 3 20 12 6 21" /></svg>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Full-bleed divider */}
-      <div style={{ position: 'relative', height: 240, marginTop: 24, marginBottom: 4 }}>
-        <img src="/palo-santo.jpg" alt="" style={{
-          width: '100%', height: '100%', objectFit: 'cover',
-        }} />
-        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.15)' }} />
+      {/* Standalone photo (has its own text) */}
+      <div style={{ margin: '24px 16px 4px', borderRadius: 16, overflow: 'hidden', height: 180 }}>
+        <img src={photos.standalone} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
       </div>
 
       {/* Today's Insight */}
       <div style={{ padding: '24px 24px 0' }}>
-        <p style={{
-          fontFamily: fonts.sans, fontSize: 10, fontWeight: 600,
-          color: colors.text3, letterSpacing: 3, textTransform: 'uppercase',
-          marginBottom: 14,
-        }}>
+        <p style={{ fontFamily: fonts.sans, fontSize: 10, fontWeight: 600, color: colors.text3, letterSpacing: 3, textTransform: 'uppercase', marginBottom: 14 }}>
           Today's Insight
         </p>
-        <div style={{
-          background: colors.surface, borderRadius: 14, padding: 22,
-        }}>
-          <p style={{
-            fontFamily: fonts.sans, fontSize: 15, fontWeight: 500,
-            color: colors.text, marginBottom: 10,
-          }}>
+        <div style={{ background: colors.surface, borderRadius: 14, padding: 22 }}>
+          <p style={{ fontFamily: fonts.sans, fontSize: 15, fontWeight: 500, color: colors.text, marginBottom: 10 }}>
             Why the groove matters more than the streak
           </p>
-          <p style={{
-            fontFamily: fonts.sans, fontSize: 14, fontWeight: 300,
-            color: colors.text2, lineHeight: 1.7,
-          }}>
+          <p style={{ fontFamily: fonts.sans, fontSize: 14, fontWeight: 300, color: colors.text2, lineHeight: 1.7 }}>
             When you repeat a behavior, your brain creates a neural pathway. Miss a day? The pathway is still there. You didn't lose anything. The groove is carved. Pick it back up.
           </p>
         </div>
