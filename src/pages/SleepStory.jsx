@@ -273,7 +273,8 @@ export default function SleepStory() {
 
 const styles = {
   page: {
-    minHeight: '100vh',
+    height: '100%',
+    overflowY: 'auto',
     background: colors.bg,
     fontFamily: fonts.sans,
     color: colors.text,

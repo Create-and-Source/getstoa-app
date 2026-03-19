@@ -52,11 +52,12 @@ export default function Journal() {
 
   return (
     <div style={{
-      minHeight: '100vh',
+      height: '100%',
+      overflowY: 'auto',
       background: colors.bg,
       color: colors.text,
       fontFamily: fonts.sans,
-      paddingBottom: 80,
+      paddingBottom: 160,
     }}>
       {/* Header */}
       <div style={{

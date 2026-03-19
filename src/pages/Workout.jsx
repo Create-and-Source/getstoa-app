@@ -199,11 +199,12 @@ export default function Workout() {
   // Styles
   const s = {
     page: {
-      minHeight: '100vh',
+      height: '100%',
+      overflowY: 'auto',
       background: colors.bg,
       color: colors.text,
       fontFamily: fonts.sans,
-      paddingBottom: 120,
+      paddingBottom: 160,
     },
     header: {
       display: 'flex',

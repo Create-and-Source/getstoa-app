@@ -157,11 +157,12 @@ export default function Playlist() {
 
   return (
     <div style={{
-      minHeight: '100vh',
+      height: '100%',
+      overflowY: 'auto',
       background: colors.bg,
       fontFamily: fonts.sans,
       color: colors.text,
-      paddingBottom: 120,
+      paddingBottom: 160,
     }}>
       {/* Back button */}
       <button
