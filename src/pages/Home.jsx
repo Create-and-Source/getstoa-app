@@ -307,6 +307,8 @@ export default function Home() {
   // Stillness timer
   const [playing, setPlaying] = useState(false)
   const [elapsed, setElapsed] = useState(0)
+  const [gratitudeText, setGratitudeText] = useState('')
+  const [gratitudeSaved, setGratitudeSaved] = useState(false)
   const timerRef = useRef(null)
 
   useEffect(() => {
@@ -530,14 +532,50 @@ export default function Home() {
           </svg>
         </div>
 
-        {/* Gratitude card */}
-        <div onClick={() => navigate('/journal')} style={{ background: colors.surface, borderRadius: 14, padding: '18px 20px', cursor: 'pointer' }}>
-          <p style={{ fontFamily: fonts.sans, fontSize: 10, fontWeight: 600, color: colors.text3, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 8 }}>
+        {/* Gratitude card — fillable */}
+        <div style={{ background: colors.surface, borderRadius: 14, padding: '18px 20px' }}>
+          <p style={{ fontFamily: fonts.sans, fontSize: 10, fontWeight: 600, color: colors.text3, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 10 }}>
             Today I'm Grateful For
           </p>
-          <p style={{ fontFamily: fonts.sans, fontSize: 14, fontWeight: 300, color: colors.text2, fontStyle: 'italic' }}>
-            {timeCopy.gratitude}
-          </p>
+          {gratitudeSaved ? (
+            <div>
+              <p style={{ fontFamily: fonts.sans, fontSize: 14, fontWeight: 300, color: colors.text, lineHeight: 1.6, marginBottom: 10 }}>
+                {gratitudeText}
+              </p>
+              <p style={{ fontFamily: fonts.sans, fontSize: 11, color: colors.text3 }}>
+                Saved — {new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+              </p>
+            </div>
+          ) : (
+            <div>
+              <textarea
+                value={gratitudeText}
+                onChange={(e) => setGratitudeText(e.target.value)}
+                placeholder={timeCopy.gratitude}
+                rows={3}
+                style={{
+                  width: '100%', fontFamily: fonts.sans, fontSize: 14, fontWeight: 300,
+                  color: colors.text, background: 'rgba(255,255,255,0.04)',
+                  border: `1px solid ${colors.border}`, borderRadius: 10,
+                  padding: '12px 14px', resize: 'none', outline: 'none',
+                  lineHeight: 1.6, marginBottom: 12,
+                }}
+              />
+              <button
+                onClick={() => { if (gratitudeText.trim()) setGratitudeSaved(true) }}
+                style={{
+                  width: '100%', fontFamily: fonts.sans, fontSize: 13, fontWeight: 600,
+                  color: gratitudeText.trim() ? colors.bg : colors.text3,
+                  background: gratitudeText.trim() ? '#fff' : 'rgba(255,255,255,0.06)',
+                  border: 'none', borderRadius: radius.pill,
+                  padding: '13px 0', cursor: gratitudeText.trim() ? 'pointer' : 'default',
+                  transition: 'all 0.2s',
+                }}
+              >
+                Save Gratitude
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </>
