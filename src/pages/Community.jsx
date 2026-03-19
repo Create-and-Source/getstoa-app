@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { colors, fonts, radius } from '../theme'
 
 const CLEAN_PHOTOS = [
@@ -88,6 +89,9 @@ const FEATURED_MEMBERS = [
 
 export default function Community() {
   const [activeTab, setActiveTab] = useState('journal')
+  const [notified, setNotified] = useState({})
+  const [following, setFollowing] = useState({})
+  const navigate = useNavigate()
 
   return (
     <div style={{
@@ -138,7 +142,9 @@ export default function Community() {
       {activeTab === 'journal' && (
         <div style={{ padding: '0 24px 28px' }}>
           {/* Compose */}
-          <div style={{
+          <div
+            onClick={() => navigate('/journal')}
+            style={{
             background: colors.surface, borderRadius: 14, padding: '16px 18px',
             marginBottom: 16, display: 'flex', alignItems: 'center', gap: 12,
             border: `1px solid ${colors.border}`, cursor: 'pointer',
@@ -385,14 +391,18 @@ export default function Community() {
                   {event.time} &middot; Led by {event.leader}
                 </p>
               </div>
-              <button style={{
+              <button
+                onClick={() => setNotified(prev => ({ ...prev, [`evt-${i}`]: !prev[`evt-${i}`] }))}
+                style={{
                 fontFamily: fonts.sans, fontSize: 11, fontWeight: 600,
-                color: colors.text2, background: 'transparent',
-                border: `1px solid ${colors.border}`,
-                borderRadius: radius.pill, padding: '7px 14px',
+                color: notified[`evt-${i}`] ? colors.text3 : '#fff',
+                background: notified[`evt-${i}`] ? 'transparent' : 'rgba(255,255,255,0.08)',
+                border: `1px solid ${notified[`evt-${i}`] ? colors.border : 'rgba(255,255,255,0.15)'}`,
+                borderRadius: radius.pill, padding: '8px 16px',
                 cursor: 'pointer', whiteSpace: 'nowrap',
+                transition: 'all 0.2s',
               }}>
-                Notify Me
+                {notified[`evt-${i}`] ? 'Notified \u2713' : 'Notify Me'}
               </button>
             </div>
           ))}
@@ -475,14 +485,18 @@ export default function Community() {
               <p style={{ fontFamily: fonts.sans, fontSize: 10, color: colors.text3, marginBottom: 10 }}>
                 {member.followers} followers
               </p>
-              <button style={{
+              <button
+                onClick={() => setFollowing(prev => ({ ...prev, [member.name]: !prev[member.name] }))}
+                style={{
                 fontFamily: fonts.sans, fontSize: 11, fontWeight: 600,
-                color: colors.text2, background: 'transparent',
-                border: `1px solid ${colors.border}`,
-                borderRadius: radius.pill, padding: '6px 16px',
+                color: following[member.name] ? colors.text3 : '#fff',
+                background: following[member.name] ? 'transparent' : 'rgba(255,255,255,0.08)',
+                border: `1px solid ${following[member.name] ? colors.border : 'rgba(255,255,255,0.15)'}`,
+                borderRadius: radius.pill, padding: '6px 14px',
                 cursor: 'pointer', width: '100%',
+                transition: 'all 0.2s', marginTop: 10,
               }}>
-                Follow
+                {following[member.name] ? 'Following' : 'Follow'}
               </button>
             </div>
           ))}

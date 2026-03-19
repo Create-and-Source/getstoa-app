@@ -358,7 +358,11 @@ export default function Home() {
 
   const suggestionSection = (
     <div style={{ padding: '16px 20px 0' }}>
-      <div style={{
+      <div onClick={() => {
+        if (timeOfDay === 'afternoon') navigate('/workout/walk-breathe')
+        else if (timeOfDay === 'evening') navigate('/journal')
+        else navigate('/stillness')
+      }} style={{
         background: colors.surface, borderRadius: 14, padding: '18px 20px',
         display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer',
         border: `1px solid ${colors.border}`,
@@ -512,7 +516,7 @@ export default function Home() {
     <>
       {/* Journal card */}
       <div style={{ padding: '0 20px' }}>
-        <div style={{
+        <div onClick={() => navigate('/journal')} style={{
           background: colors.surface, borderRadius: 14, padding: '18px 20px',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           cursor: 'pointer', marginBottom: 10,
@@ -527,7 +531,7 @@ export default function Home() {
         </div>
 
         {/* Gratitude card */}
-        <div style={{ background: colors.surface, borderRadius: 14, padding: '18px 20px', cursor: 'pointer' }}>
+        <div onClick={() => navigate('/journal')} style={{ background: colors.surface, borderRadius: 14, padding: '18px 20px', cursor: 'pointer' }}>
           <p style={{ fontFamily: fonts.sans, fontSize: 10, fontWeight: 600, color: colors.text3, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 8 }}>
             Today I'm Grateful For
           </p>
@@ -599,7 +603,7 @@ export default function Home() {
       </div>
 
       <div style={{ padding: '12px 20px 0' }}>
-        <button style={{
+        <button onClick={() => navigate('/stillness')} style={{
           width: '100%', fontFamily: fonts.sans, fontSize: 13, fontWeight: 600,
           letterSpacing: 1, color: '#fff',
           background: 'rgba(255,255,255,0.08)',
@@ -614,7 +618,7 @@ export default function Home() {
 
   const calmButton = (
     <div style={{ padding: '28px 24px' }}>
-      <button style={{
+      <button onClick={() => navigate('/stillness')} style={{
         width: '100%', fontFamily: fonts.sans, fontSize: 12, fontWeight: 600,
         letterSpacing: 2, textTransform: 'uppercase',
         color: colors.bg, background: '#fff',
@@ -775,12 +779,12 @@ export default function Home() {
         <p style={{ fontFamily: fonts.sans, fontSize: 10, fontWeight: 600, color: colors.text3, letterSpacing: 3, textTransform: 'uppercase', marginBottom: 14 }}>Playlists</p>
         <div style={{ background: colors.surface, borderRadius: 14, overflow: 'hidden' }}>
           {[
-            { title: 'Morning Ritual', curator: 'Sarah M.', tracks: 12, accent: '#4a6741' },
-            { title: 'Deep Focus', curator: 'Amara J.', tracks: 18, accent: '#5c5040' },
-            { title: 'Wind Down', curator: 'Nadia C.', tracks: 9, accent: '#4a4060' },
-            { title: 'Movement Energy', curator: 'Sarah M.', tracks: 15, accent: '#604040' },
+            { title: 'Morning Ritual', curator: 'Sarah M.', tracks: 12, accent: '#4a6741', slug: 'morning-ritual' },
+            { title: 'Deep Focus', curator: 'Amara J.', tracks: 18, accent: '#5c5040', slug: 'deep-focus' },
+            { title: 'Wind Down', curator: 'Nadia C.', tracks: 9, accent: '#4a4060', slug: 'wind-down' },
+            { title: 'Movement Energy', curator: 'Sarah M.', tracks: 15, accent: '#604040', slug: 'movement-energy' },
           ].map((pl, i, arr) => (
-            <div key={i} style={{
+            <div key={i} onClick={() => navigate(`/playlist/${pl.slug}`)} style={{
               padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 14,
               borderBottom: i < arr.length - 1 ? `1px solid ${colors.border}` : 'none',
               cursor: 'pointer',
@@ -879,13 +883,13 @@ export default function Home() {
         </div>
         <div style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingLeft: 24, paddingRight: 24, paddingBottom: 4 }}>
           {[
-            { title: 'Morning Flow', type: 'Yoga', duration: '25 min', instructor: 'Sarah M.' },
-            { title: 'Sculpt & Tone', type: 'Pilates', duration: '30 min', instructor: 'Nadia C.' },
-            { title: 'Walk + Breathe', type: 'Walking', duration: '20 min', instructor: 'Amara J.' },
-            { title: 'Full Body Strength', type: 'Strength', duration: '35 min', instructor: 'Sarah M.' },
-            { title: 'Stretch & Release', type: 'Recovery', duration: '15 min', instructor: 'Nadia C.' },
+            { title: 'Morning Flow', type: 'Yoga', duration: '25 min', instructor: 'Sarah M.', slug: 'morning-flow' },
+            { title: 'Sculpt & Tone', type: 'Pilates', duration: '30 min', instructor: 'Nadia C.', slug: 'sculpt-tone' },
+            { title: 'Walk + Breathe', type: 'Walking', duration: '20 min', instructor: 'Amara J.', slug: 'walk-breathe' },
+            { title: 'Full Body Strength', type: 'Strength', duration: '35 min', instructor: 'Sarah M.', slug: 'full-body' },
+            { title: 'Stretch & Release', type: 'Recovery', duration: '15 min', instructor: 'Nadia C.', slug: 'stretch-release' },
           ].map((w, i) => (
-            <div key={i} style={{
+            <div key={i} onClick={() => navigate(`/workout/${w.slug}`)} style={{
               minWidth: 140, borderRadius: 14, overflow: 'hidden',
               background: colors.surface, cursor: 'pointer', flexShrink: 0,
               border: `1px solid ${colors.border}`,

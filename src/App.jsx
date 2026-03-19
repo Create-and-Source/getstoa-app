@@ -6,6 +6,11 @@ import Mind from './pages/Mind'
 import Progress from './pages/Progress'
 import Profile from './pages/Profile'
 import VisionBoard from './pages/VisionBoard'
+import Journal from './pages/Journal'
+import Stillness from './pages/Stillness'
+import Workout from './pages/Workout'
+import Playlist from './pages/Playlist'
+import SleepStory from './pages/SleepStory'
 
 export default function App() {
   return (
@@ -24,6 +29,11 @@ export default function App() {
         <Route path="/progress" element={<Progress />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/vision" element={<VisionBoard />} />
+        <Route path="/journal" element={<Journal />} />
+        <Route path="/stillness" element={<Stillness />} />
+        <Route path="/workout/:slug?" element={<Workout />} />
+        <Route path="/playlist/:slug?" element={<Playlist />} />
+        <Route path="/sleep/:slug?" element={<SleepStory />} />
       </Routes>
       <TabBar />
     </div>

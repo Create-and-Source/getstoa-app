@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { colors, fonts, radius } from '../theme'
 
 // Clean photos — safe for text overlay
@@ -76,10 +77,10 @@ const AUDIO_LIBRARY = [
 ]
 
 const SLEEP_STORIES = [
-  { title: 'The Lavender Field', narrator: 'Sarah M.', duration: '25 min' },
-  { title: 'Rain on the Roof', narrator: 'Amara J.', duration: '30 min' },
-  { title: 'Mountain Cabin', narrator: 'Nadia C.', duration: '22 min' },
-  { title: 'Starlit Garden', narrator: 'Sarah M.', duration: '28 min' },
+  { title: 'The Lavender Field', narrator: 'Sarah M.', duration: '25 min', slug: 'lavender-field' },
+  { title: 'Rain on the Roof', narrator: 'Amara J.', duration: '30 min', slug: 'rain-on-roof' },
+  { title: 'Mountain Cabin', narrator: 'Nadia C.', duration: '22 min', slug: 'mountain-cabin' },
+  { title: 'Starlit Garden', narrator: 'Sarah M.', duration: '28 min', slug: 'starlit-garden' },
 ]
 
 const GUIDED_PROGRAMS = [
@@ -96,6 +97,7 @@ const INTENTION_CARDS = [
 ]
 
 export default function Mind() {
+  const navigate = useNavigate()
   const [breathing, setBreathing] = useState(false)
   const [breathPhase, setBreathPhase] = useState('inhale')
   const [breathScale, setBreathScale] = useState(1)
@@ -213,7 +215,7 @@ export default function Mind() {
         </div>
         <div style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingLeft: 24, paddingRight: 24, paddingBottom: 4 }}>
           {AUDIO_LIBRARY.map((item, i) => (
-            <div key={i} style={{ minWidth: 160, borderRadius: 14, overflow: 'hidden', background: item.color, cursor: 'pointer', flexShrink: 0 }}>
+            <div key={i} onClick={() => navigate('/stillness')} style={{ minWidth: 160, borderRadius: 14, overflow: 'hidden', background: item.color, cursor: 'pointer', flexShrink: 0 }}>
               <div style={{ height: 90, background: `linear-gradient(135deg, ${item.color} 0%, rgba(255,255,255,0.04) 100%)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <div style={{ width: 36, height: 36, borderRadius: 18, background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <svg width={14} height={14} viewBox="0 0 24 24" fill="#fff"><polygon points="6 3 20 12 6 21" /></svg>
@@ -235,7 +237,7 @@ export default function Mind() {
         </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {SLEEP_STORIES.map((story, i) => (
-            <div key={i} style={{ background: colors.surface, borderRadius: 14, padding: '16px 18px', display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer' }}>
+            <div key={i} onClick={() => navigate(`/sleep/${story.slug}`)} style={{ background: colors.surface, borderRadius: 14, padding: '16px 18px', display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer' }}>
               <div style={{ width: 44, height: 44, borderRadius: 10, background: 'rgba(255,255,255,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.text3} strokeWidth={1.5} strokeLinecap="round">
                   <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
@@ -263,7 +265,7 @@ export default function Mind() {
                 <p style={{ fontFamily: fonts.sans, fontSize: 14, fontWeight: 500, color: colors.text, marginBottom: 2 }}>{program.title}</p>
                 <p style={{ fontFamily: fonts.sans, fontSize: 11, color: colors.text3 }}>{program.host} &middot; {program.sessions} sessions</p>
               </div>
-              <button style={{
+              <button onClick={() => navigate('/stillness')} style={{
                 fontFamily: fonts.sans, fontSize: 11, fontWeight: 600, color: '#fff',
                 background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)',
                 borderRadius: radius.pill, padding: '8px 18px', cursor: 'pointer', flexShrink: 0,
