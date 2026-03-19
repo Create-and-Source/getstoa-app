@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { colors, fonts, radius } from '../theme'
 
@@ -305,22 +305,8 @@ export default function Home() {
   }, [visionItems.length])
 
   // Stillness timer
-  const [playing, setPlaying] = useState(false)
-  const [elapsed, setElapsed] = useState(0)
   const [gratitudeText, setGratitudeText] = useState('')
   const [gratitudeSaved, setGratitudeSaved] = useState(false)
-  const timerRef = useRef(null)
-
-  useEffect(() => {
-    if (playing) {
-      timerRef.current = setInterval(() => setElapsed(e => e + 1), 1000)
-    } else {
-      clearInterval(timerRef.current)
-    }
-    return () => clearInterval(timerRef.current)
-  }, [playing])
-
-  const fmt = (s) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`
 
   // === Shared section renderers ===
 
@@ -583,7 +569,7 @@ export default function Home() {
 
   const stillnessSection = (
     <>
-      <div style={{ position: 'relative', height: 220, margin: '24px 16px 4px', borderRadius: 16, overflow: 'hidden' }}>
+      <div onClick={() => navigate('/stillness')} style={{ position: 'relative', height: 220, margin: '24px 16px 4px', borderRadius: 16, overflow: 'hidden', cursor: 'pointer' }}>
         <img src={photos.stillness} alt="" style={{
           width: '100%', height: '100%', objectFit: 'cover',
         }} />
@@ -602,40 +588,15 @@ export default function Home() {
             {timeCopy.stillness}
           </p>
         </div>
-        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '0 20px 16px' }}>
-          <div style={{ height: 2, background: 'rgba(255,255,255,0.15)', borderRadius: 1, marginBottom: 12, overflow: 'hidden' }}>
-            <div style={{ height: '100%', width: `${Math.min((elapsed / 1800) * 100, 100)}%`, background: '#fff', transition: 'width 1s linear' }} />
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 32 }}>
-            <button onClick={() => setElapsed(e => Math.max(0, e - 10))} style={{ cursor: 'pointer' }}>
-              <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth={2} strokeLinecap="round">
-                <path d="M1 4v6h6" /><path d="M3.51 15a9 9 0 102.13-9.36L1 10" />
-              </svg>
-            </button>
-            <button onClick={() => setPlaying(!playing)} style={{
-              width: 42, height: 42, borderRadius: 21,
-              border: '1px solid rgba(255,255,255,0.3)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-            }}>
-              {playing ? (
-                <svg width={14} height={14} viewBox="0 0 24 24" fill="#fff">
-                  <rect x="6" y="4" width="4" height="16" rx="1" />
-                  <rect x="14" y="4" width="4" height="16" rx="1" />
-                </svg>
-              ) : (
-                <svg width={14} height={14} viewBox="0 0 24 24" fill="#fff">
-                  <polygon points="6 3 20 12 6 21" />
-                </svg>
-              )}
-            </button>
-            <button onClick={() => setElapsed(e => e + 10)} style={{ cursor: 'pointer' }}>
-              <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth={2} strokeLinecap="round">
-                <path d="M23 4v6h-6" /><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10" />
-              </svg>
-            </button>
-            <span style={{ position: 'absolute', right: 20, fontFamily: fonts.sans, fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>
-              {fmt(elapsed)}
-            </span>
+        <div style={{ position: 'absolute', bottom: 20, left: 0, right: 0, display: 'flex', justifyContent: 'center' }}>
+          <div style={{
+            width: 48, height: 48, borderRadius: 24,
+            border: '1px solid rgba(255,255,255,0.3)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <svg width={16} height={16} viewBox="0 0 24 24" fill="#fff">
+              <polygon points="6 3 20 12 6 21" />
+            </svg>
           </div>
         </div>
       </div>
