@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { colors, fonts, radius } from '../theme'
 
 const VISION_ITEMS = [
@@ -14,6 +15,8 @@ const VISION_ITEMS = [
 ]
 
 export default function Home() {
+  const navigate = useNavigate()
+
   // Vision board carousel
   const [visionIdx, setVisionIdx] = useState(0)
   useEffect(() => {
@@ -442,59 +445,40 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ========== MY TEAM — horizontal scroll ========== */}
-      <div style={{ padding: '24px 0 0' }}>
-        <div style={{ padding: '0 24px', marginBottom: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+      {/* ========== MY TEAM — coming soon ========== */}
+      <div style={{ padding: '24px 20px 0' }}>
+        <div style={{
+          background: colors.surface, borderRadius: 16,
+          padding: '28px 24px', textAlign: 'center',
+          position: 'relative', overflow: 'hidden',
+        }}>
+          <div style={{
+            position: 'absolute', top: -30, right: -30,
+            width: 120, height: 120, borderRadius: 60,
+            background: 'rgba(255,255,255,0.02)',
+          }} />
           <p style={{
             fontFamily: fonts.sans, fontSize: 10, fontWeight: 600,
             color: colors.text3, letterSpacing: 3, textTransform: 'uppercase',
+            marginBottom: 10,
           }}>
-            My Team
+            My Wellness Team
           </p>
-          <span style={{
-            fontFamily: fonts.sans, fontSize: 11, fontWeight: 500,
-            color: colors.text3, cursor: 'pointer',
+          <p style={{
+            fontFamily: fonts.sans, fontSize: 16, fontWeight: 300,
+            color: colors.text2, lineHeight: 1.6, marginBottom: 16,
           }}>
-            See All
-          </span>
-        </div>
-        <div style={{
-          display: 'flex', gap: 14, overflowX: 'auto',
-          paddingLeft: 24, paddingRight: 24, paddingBottom: 4,
-        }}>
-          {[
-            { name: 'Sarah M.', role: 'Pilates', initial: 'S', bg: '#2A2520' },
-            { name: 'Amara J.', role: 'Breathwork', initial: 'A', bg: '#1E2A20' },
-            { name: 'Nadia C.', role: 'Hypnotherapy', initial: 'N', bg: '#201E2A' },
-            { name: 'Find New', role: 'Practitioner', initial: '+', bg: 'transparent' },
-          ].map((p, i) => (
-            <div key={i} style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'center',
-              gap: 8, cursor: 'pointer', flexShrink: 0, minWidth: 72,
-            }}>
-              <div style={{
-                width: 56, height: 56, borderRadius: 28,
-                background: p.bg,
-                border: p.bg === 'transparent' ? `1px dashed ${colors.border}` : 'none',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <span style={{
-                  fontFamily: fonts.sans, fontSize: p.initial === '+' ? 20 : 18,
-                  fontWeight: 300, color: p.initial === '+' ? colors.text3 : '#fff',
-                }}>
-                  {p.initial}
-                </span>
-              </div>
-              <div style={{ textAlign: 'center' }}>
-                <p style={{ fontFamily: fonts.sans, fontSize: 11, fontWeight: 500, color: colors.text }}>
-                  {p.name}
-                </p>
-                <p style={{ fontFamily: fonts.sans, fontSize: 9, color: colors.text3 }}>
-                  {p.role}
-                </p>
-              </div>
-            </div>
-          ))}
+            Your trainer. Your therapist.<br />Your meditation guide. One place.
+          </p>
+          <button style={{
+            fontFamily: fonts.sans, fontSize: 11, fontWeight: 600,
+            color: '#fff', background: 'rgba(255,255,255,0.08)',
+            border: '1px solid rgba(255,255,255,0.15)',
+            borderRadius: radius.pill, padding: '10px 22px', cursor: 'pointer',
+            letterSpacing: 0.5,
+          }}>
+            Coming Soon
+          </button>
         </div>
       </div>
 
@@ -621,11 +605,11 @@ export default function Home() {
           }}>
             Vision Board
           </p>
-          <span style={{
+          <span onClick={() => navigate('/vision')} style={{
             fontFamily: fonts.sans, fontSize: 11, fontWeight: 500,
             color: colors.text3, cursor: 'pointer',
           }}>
-            Edit
+            Open
           </span>
         </div>
 

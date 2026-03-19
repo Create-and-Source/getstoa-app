@@ -5,6 +5,7 @@ import Train from './pages/Train'
 import Mind from './pages/Mind'
 import Progress from './pages/Progress'
 import Profile from './pages/Profile'
+import VisionBoard from './pages/VisionBoard'
 
 export default function App() {
   return (
@@ -22,6 +23,7 @@ export default function App() {
         <Route path="/mind" element={<Mind />} />
         <Route path="/progress" element={<Progress />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/vision" element={<VisionBoard />} />
       </Routes>
       <TabBar />
     </div>
