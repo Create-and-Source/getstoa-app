@@ -75,7 +75,7 @@ export default function Mind() {
   }, [breathing])
 
   return (
-    <div style={{ height: '100%', overflowY: 'auto', paddingBottom: 140, background: colors.bg }}>
+    <div style={{ height: '100%', overflowY: 'auto', paddingBottom: 160, background: colors.bg }}>
 
       {/* Hero image — rounded, shorter */}
       <div style={{ position: 'relative', height: 300, margin: '8px 16px 0', borderRadius: 20, overflow: 'hidden' }}>

@@ -29,8 +29,50 @@ function pickUnique(pool, count) {
   return shuffle(pool).slice(0, count)
 }
 
+// Time-of-day content
+function getTimeOfDay() {
+  const h = new Date().getHours()
+  if (h >= 5 && h < 12) return 'morning'
+  if (h >= 12 && h < 17) return 'afternoon'
+  if (h >= 17 && h < 21) return 'evening'
+  return 'night'
+}
+
+const TIME_CONFIG = {
+  morning: {
+    greeting: 'Good morning',
+    subtitle: 'Start with intention.',
+    suggestion: 'Morning Ritual',
+    suggestionDesc: 'Gratitude, breathwork, and setting your intention for the day.',
+    suggestionIcon: 'sun',
+  },
+  afternoon: {
+    greeting: 'Good afternoon',
+    subtitle: 'Stay present.',
+    suggestion: 'Afternoon Walk',
+    suggestionDesc: 'Step outside. Move your body. Let your mind wander.',
+    suggestionIcon: 'walk',
+  },
+  evening: {
+    greeting: 'Good evening',
+    subtitle: 'Begin to wind down.',
+    suggestion: 'Evening Reflection',
+    suggestionDesc: 'Journal your wins. Release what didn\'t serve you. Breathe.',
+    suggestionIcon: 'moon',
+  },
+  night: {
+    greeting: 'Goodnight',
+    subtitle: 'Rest is sacred.',
+    suggestion: 'Sleep Preparation',
+    suggestionDesc: 'Dim the lights. A body scan. Let go of the day.',
+    suggestionIcon: 'stars',
+  },
+}
+
 export default function Home() {
   const navigate = useNavigate()
+  const timeOfDay = useMemo(() => getTimeOfDay(), [])
+  const timeConfig = TIME_CONFIG[timeOfDay]
 
   // Pick ALL photos for the page in one pass — zero repeats
   const { photos, visionItems } = useMemo(() => {
@@ -45,20 +87,43 @@ export default function Home() {
       standalone2: text[1],
     }
 
-    // Vision board gets remaining photos only (exclude the 5 already used)
-    const used = new Set([clean[0], clean[1], clean[2], text[0], text[1]])
-    const remaining = shuffle(ALL_PHOTOS.filter(p => !used.has(p)))
-    const vItems = [
-      { type: 'image', src: remaining[0] },
-      { type: 'affirmation', text: 'I am becoming the person I was always meant to be.' },
-      { type: 'image', src: remaining[1] },
-      { type: 'affirmation', text: 'She built a life so beautiful, it healed her.' },
-      { type: 'image', src: remaining[2] },
-      { type: 'affirmation', text: 'My peace is non-negotiable.' },
-      { type: 'image', src: remaining[3] },
-      { type: 'affirmation', text: 'I attract what I am, not what I want.' },
-      { type: 'image', src: remaining[4] },
-    ]
+    // Vision board: read user's saved photos from localStorage, fall back to random
+    let savedPhotos = []
+    let savedAffirmations = []
+    try {
+      const sp = localStorage.getItem('stoa-vision-photos')
+      if (sp) savedPhotos = JSON.parse(sp)
+      const sa = localStorage.getItem('stoa-vision-affirmations')
+      if (sa) savedAffirmations = JSON.parse(sa)
+    } catch {}
+
+    const visionPhotos = savedPhotos.length > 0
+      ? shuffle(savedPhotos).slice(0, 5)
+      : (() => {
+          const used = new Set([clean[0], clean[1], clean[2], text[0], text[1]])
+          return shuffle(ALL_PHOTOS.filter(p => !used.has(p))).slice(0, 5)
+        })()
+
+    const visionTexts = savedAffirmations.length > 0
+      ? shuffle(savedAffirmations).slice(0, 4)
+      : [
+          'I am becoming the person I was always meant to be.',
+          'She built a life so beautiful, it healed her.',
+          'My peace is non-negotiable.',
+          'I attract what I am, not what I want.',
+        ]
+
+    const vItems = []
+    let pi = 0, ti = 0
+    for (let i = 0; i < visionPhotos.length + visionTexts.length; i++) {
+      if (i % 3 === 1 && ti < visionTexts.length) {
+        vItems.push({ type: 'affirmation', text: visionTexts[ti++] })
+      } else if (pi < visionPhotos.length) {
+        vItems.push({ type: 'image', src: visionPhotos[pi++] })
+      } else if (ti < visionTexts.length) {
+        vItems.push({ type: 'affirmation', text: visionTexts[ti++] })
+      }
+    }
 
     return { photos: pagePhotos, visionItems: vItems }
   }, [])
@@ -92,7 +157,7 @@ export default function Home() {
       height: '100%',
       overflowY: 'auto',
       background: colors.bg,
-      paddingBottom: 140,
+      paddingBottom: 160,
     }}>
 
       {/* ========== HERO ========== */}
@@ -102,7 +167,7 @@ export default function Home() {
         }} />
         <div style={{
           position: 'absolute', inset: 0,
-          background: 'linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.2) 100%)',
+          background: 'linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.35) 100%)',
         }} />
         <div style={{
           position: 'absolute', top: 48, left: 0, right: 0,
@@ -114,6 +179,65 @@ export default function Home() {
           }}>
             Stoa
           </span>
+        </div>
+        <div style={{ position: 'absolute', bottom: 28, left: 24, right: 24 }}>
+          <p style={{ fontFamily: fonts.sans, fontSize: 24, fontWeight: 300, color: '#fff', marginBottom: 4 }}>
+            {timeConfig.greeting}
+          </p>
+          <p style={{ fontFamily: fonts.sans, fontSize: 13, fontWeight: 400, color: 'rgba(255,255,255,0.5)' }}>
+            {timeConfig.subtitle}
+          </p>
+        </div>
+      </div>
+
+      {/* ========== TIME-AWARE SUGGESTION ========== */}
+      <div style={{ padding: '16px 20px 0' }}>
+        <div style={{
+          background: colors.surface, borderRadius: 14, padding: '18px 20px',
+          display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer',
+          border: `1px solid ${colors.border}`,
+        }}>
+          <div style={{
+            width: 42, height: 42, borderRadius: 12,
+            background: 'rgba(255,255,255,0.06)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+          }}>
+            {timeOfDay === 'morning' && (
+              <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.text2} strokeWidth={1.5} strokeLinecap="round">
+                <circle cx="12" cy="12" r="5" /><line x1="12" y1="1" x2="12" y2="3" /><line x1="12" y1="21" x2="12" y2="23" />
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" /><line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                <line x1="1" y1="12" x2="3" y2="12" /><line x1="21" y1="12" x2="23" y2="12" />
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" /><line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+              </svg>
+            )}
+            {timeOfDay === 'afternoon' && (
+              <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.text2} strokeWidth={1.5} strokeLinecap="round">
+                <path d="M13 4v4l3 3M9 20l3-6 3 6M12 4a1 1 0 100-2 1 1 0 000 2z" /><path d="M7 20h10" />
+              </svg>
+            )}
+            {timeOfDay === 'evening' && (
+              <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.text2} strokeWidth={1.5} strokeLinecap="round">
+                <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+              </svg>
+            )}
+            {timeOfDay === 'night' && (
+              <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.text2} strokeWidth={1.5} strokeLinecap="round">
+                <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+                <path d="M3 3l1.5 1.5M21 3l-1.5 1.5M12 1v2" />
+              </svg>
+            )}
+          </div>
+          <div style={{ flex: 1 }}>
+            <p style={{ fontFamily: fonts.sans, fontSize: 14, fontWeight: 500, color: colors.text, marginBottom: 3 }}>
+              {timeConfig.suggestion}
+            </p>
+            <p style={{ fontFamily: fonts.sans, fontSize: 12, color: colors.text3, lineHeight: 1.4 }}>
+              {timeConfig.suggestionDesc}
+            </p>
+          </div>
+          <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={colors.text3} strokeWidth={2} strokeLinecap="round">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
         </div>
       </div>
 
@@ -480,12 +604,12 @@ export default function Home() {
           </div>
         </div>
         <div style={{ padding: '12px 20px 0', display: 'flex', justifyContent: 'center' }}>
-          <button style={{
+          <button onClick={() => navigate('/vision')} style={{
             fontFamily: fonts.sans, fontSize: 11, fontWeight: 500, color: colors.text3,
             background: 'none', cursor: 'pointer', padding: '8px 16px',
             border: `1px solid ${colors.border}`, borderRadius: radius.pill,
           }}>
-            + Add Photo or Affirmation
+            Choose Photos
           </button>
         </div>
       </div>

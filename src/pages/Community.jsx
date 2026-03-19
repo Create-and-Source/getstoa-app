@@ -43,7 +43,7 @@ export default function Community() {
     <div style={{
       height: '100%',
       overflowY: 'auto',
-      paddingBottom: 140,
+      paddingBottom: 160,
       background: colors.bg,
     }}>
       {/* Header */}

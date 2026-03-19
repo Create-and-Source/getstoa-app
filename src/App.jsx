@@ -12,7 +12,7 @@ export default function App() {
     <div style={{
       maxWidth: 430,
       margin: '0 auto',
-      height: '100vh',
+      height: '100dvh',
       position: 'relative',
       overflow: 'hidden',
       background: '#0D0D0D',
