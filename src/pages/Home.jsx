@@ -4,29 +4,56 @@ import { colors, fonts, radius } from '../theme'
 
 // Clean photos (no baked-in text) — safe for text overlay
 const CLEAN_PHOTOS = [
-  '/skin.jpg', '/mudra.jpg', '/palo-santo.jpg', '/mindbody.jpg', '/monstera.jpg',
-  '/crystal.jpg', '/leaf-dark.jpg', '/connection.jpg', '/yoga.jpg', '/sage-bowl.jpg',
+  '/skin.jpg', '/mudra.jpg', '/palo-santo.jpg', '/monstera.jpg',
+  '/crystal.jpg', '/leaf-dark.jpg', '/yoga.jpg', '/sage-bowl.jpg',
 ]
 
 // Photos with text baked in — show standalone only, never overlay app text
 const TEXT_PHOTOS = [
   '/live-slowly.jpg', '/bodymindssoul.jpg', '/meditation.jpg', '/soul.jpg',
   '/whole.jpg', '/water.jpg', '/harmony.jpg', '/routines.jpg',
+  '/connection.jpg', '/mindbody.jpg',
 ]
 
 const ALL_PHOTOS = [...CLEAN_PHOTOS, ...TEXT_PHOTOS]
 
-function shuffle(arr) {
+// Time-preferred hero photos — ONLY from CLEAN_PHOTOS (no baked-in text)
+const TIME_PHOTOS = {
+  morning: ['/palo-santo.jpg', '/sage-bowl.jpg', '/monstera.jpg', '/crystal.jpg'],
+  afternoon: ['/yoga.jpg', '/monstera.jpg', '/palo-santo.jpg'],
+  evening: ['/mudra.jpg', '/leaf-dark.jpg', '/skin.jpg'],
+  night: ['/crystal.jpg', '/leaf-dark.jpg', '/skin.jpg'],
+}
+
+// Color atmosphere tints by time of day
+const TIME_TINTS = {
+  morning: 'rgba(180,140,60,0.08)',
+  afternoon: 'transparent',
+  evening: 'rgba(100,80,140,0.06)',
+  night: 'rgba(40,60,120,0.08)',
+}
+
+function seededRandom(seed) {
+  let s = seed
+  return () => {
+    s = (s * 16807 + 0) % 2147483647
+    return (s - 1) / 2147483646
+  }
+}
+
+function getDailySeed() {
+  const d = new Date()
+  return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate()
+}
+
+function shuffle(arr, rng) {
   const a = [...arr]
+  const rand = rng || Math.random
   for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(rand() * (i + 1));
     [a[i], a[j]] = [a[j], a[i]]
   }
   return a
-}
-
-function pickUnique(pool, count) {
-  return shuffle(pool).slice(0, count)
 }
 
 // Time-of-day content
@@ -36,6 +63,78 @@ function getTimeOfDay() {
   if (h >= 12 && h < 17) return 'afternoon'
   if (h >= 17 && h < 21) return 'evening'
   return 'night'
+}
+
+// Generate realistic stats based on time of day with a daily seed
+function generateStats(hour, rng) {
+  const r = (min, max) => Math.round(min + rng() * (max - min))
+
+  if (hour >= 5 && hour < 12) {
+    return {
+      header: "Today's Intention",
+      walk: { value: 0, label: 'min', sub: 'planned: 30 min', goal: 30, progress: 0 },
+      stillness: { value: r(0, 8), label: 'min', sub: `Day ${r(30, 45)} streak`, goal: 20, progress: null },
+      water: { value: r(1, 3), label: 'of 8', sub: 'glasses today', goal: 8, progress: null },
+      sleep: { value: (r(68, 82) / 10).toFixed(1), label: 'hrs', sub: 'quality: good', goal: 8, progress: null },
+    }
+  }
+  if (hour >= 12 && hour < 17) {
+    const walkMin = r(15, 32)
+    return {
+      header: 'Today So Far',
+      walk: { value: walkMin, label: 'min', sub: `${(walkMin * 0.056).toFixed(1)} miles`, goal: 30, progress: null },
+      stillness: { value: r(8, 15), label: 'min', sub: `Day ${r(30, 45)} streak`, goal: 20, progress: null },
+      water: { value: r(4, 6), label: 'of 8', sub: 'glasses today', goal: 8, progress: null },
+      sleep: { value: (r(68, 82) / 10).toFixed(1), label: 'hrs', sub: 'quality: good', goal: 8, progress: null },
+    }
+  }
+  if (hour >= 17 && hour < 21) {
+    const walkMin = r(28, 35)
+    return {
+      header: 'Today',
+      walk: { value: walkMin, label: 'min', sub: `${(walkMin * 0.056).toFixed(1)} miles`, goal: 30, progress: null },
+      stillness: { value: r(12, 18), label: 'min', sub: `Day ${r(30, 45)} streak`, goal: 20, progress: null },
+      water: { value: r(6, 7), label: 'of 8', sub: 'glasses today', goal: 8, progress: null },
+      sleep: { value: (r(68, 82) / 10).toFixed(1), label: 'hrs', sub: 'quality: good', goal: 8, progress: null },
+    }
+  }
+  // night
+  const walkMin = r(32, 38)
+  return {
+    header: 'Today, Complete',
+    walk: { value: walkMin, label: 'min', sub: `${(walkMin * 0.056).toFixed(1)} miles`, goal: 30, progress: null },
+    stillness: { value: r(15, 22), label: 'min', sub: `Day ${r(30, 45)} streak`, goal: 20, progress: null },
+    water: { value: r(7, 8), label: 'of 8', sub: 'glasses today', goal: 8, progress: null },
+    sleep: { value: (r(68, 82) / 10).toFixed(1), label: 'hrs', sub: 'quality: good', goal: 8, progress: null },
+  }
+}
+
+// Contextual copy
+const TIME_COPY = {
+  morning: {
+    journal: 'Start fresh today',
+    gratitude: "What are you grateful for this morning?",
+    stillness: 'sit in stillness..',
+    quote: '"Day 21, the pathway forms. Day 66, it becomes automatic. Day 90, you are rewired."',
+  },
+  afternoon: {
+    journal: 'Capture this moment',
+    gratitude: "What's been good about today?",
+    stillness: 'sit in stillness..',
+    quote: '"She remembered who she was and the game changed."',
+  },
+  evening: {
+    journal: 'Reflect on your day',
+    gratitude: 'Three things that went well...',
+    stillness: 'wind down in stillness..',
+    quote: '"Almost everything will work again if you unplug it for a few minutes. Including you."',
+  },
+  night: {
+    journal: 'Write before you rest',
+    gratitude: 'What brought you peace today?',
+    stillness: 'release the day..',
+    quote: '"Sleep is the best meditation." — Dalai Lama',
+  },
 }
 
 const TIME_CONFIG = {
@@ -69,20 +168,43 @@ const TIME_CONFIG = {
   },
 }
 
+// Thin progress bar component for stat cards
+function StatBar({ value, goal }) {
+  const pct = Math.min((value / goal) * 100, 100)
+  return (
+    <div style={{ height: 2, background: 'rgba(255,255,255,0.06)', borderRadius: 1, marginTop: 10, overflow: 'hidden' }}>
+      <div style={{ height: '100%', width: `${pct}%`, background: 'rgba(255,255,255,0.15)', borderRadius: 1, transition: 'width 0.6s ease' }} />
+    </div>
+  )
+}
+
 export default function Home() {
   const navigate = useNavigate()
   const timeOfDay = useMemo(() => getTimeOfDay(), [])
   const timeConfig = TIME_CONFIG[timeOfDay]
+  const timeCopy = TIME_COPY[timeOfDay]
+  const tint = TIME_TINTS[timeOfDay]
+  const hour = new Date().getHours()
 
-  // Pick ALL photos for the page in one pass — zero repeats
+  // Daily seeded stats
+  const stats = useMemo(() => {
+    const rng = seededRandom(getDailySeed())
+    return generateStats(hour, rng)
+  }, [hour])
+
+  // Pick ALL photos for the page in one pass — zero repeats, time-aware hero
   const { photos, visionItems } = useMemo(() => {
-    const clean = shuffle(CLEAN_PHOTOS)
+    const preferred = TIME_PHOTOS[timeOfDay]
+    const heroPool = shuffle(preferred)
+    const hero = heroPool[0]
+
+    const remainingClean = shuffle(CLEAN_PHOTOS.filter(p => p !== hero))
     const text = shuffle(TEXT_PHOTOS)
 
     const pagePhotos = {
-      hero: clean[0],
-      stillness: clean[1],
-      ritual: clean[2],
+      hero,
+      stillness: remainingClean[0],
+      ritual: remainingClean[1],
       standalone1: text[0],
       standalone2: text[1],
     }
@@ -100,7 +222,7 @@ export default function Home() {
     const visionPhotos = savedPhotos.length > 0
       ? shuffle(savedPhotos).slice(0, 5)
       : (() => {
-          const used = new Set([clean[0], clean[1], clean[2], text[0], text[1]])
+          const used = new Set([hero, remainingClean[0], remainingClean[1], text[0], text[1]])
           return shuffle(ALL_PHOTOS.filter(p => !used.has(p))).slice(0, 5)
         })()
 
@@ -126,7 +248,7 @@ export default function Home() {
     }
 
     return { photos: pagePhotos, visionItems: vItems }
-  }, [])
+  }, [timeOfDay])
 
   const [visionIdx, setVisionIdx] = useState(0)
   useEffect(() => {
@@ -152,190 +274,198 @@ export default function Home() {
 
   const fmt = (s) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`
 
-  return (
-    <div style={{
-      height: '100%',
-      overflowY: 'auto',
-      background: colors.bg,
-      paddingBottom: 160,
-    }}>
+  // === Shared section renderers ===
 
-      {/* ========== HERO ========== */}
-      <div style={{ position: 'relative', height: 320, margin: '0 16px', borderRadius: 20, overflow: 'hidden', marginTop: 8 }}>
-        <img src={photos.hero} alt="" style={{
-          width: '100%', height: '100%', objectFit: 'cover',
-        }} />
-        <div style={{
-          position: 'absolute', inset: 0,
-          background: 'linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.35) 100%)',
-        }} />
-        <div style={{
-          position: 'absolute', top: 48, left: 0, right: 0,
-          display: 'flex', justifyContent: 'center',
+  const heroSection = (
+    <div style={{ position: 'relative', height: 320, margin: '0 16px', borderRadius: 20, overflow: 'hidden', marginTop: 8 }}>
+      <img src={photos.hero} alt="" style={{
+        width: '100%', height: '100%', objectFit: 'cover',
+      }} />
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: 'linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.35) 100%)',
+      }} />
+      {tint !== 'transparent' && (
+        <div style={{ position: 'absolute', inset: 0, background: tint }} />
+      )}
+      <div style={{
+        position: 'absolute', top: 48, left: 0, right: 0,
+        display: 'flex', justifyContent: 'center',
+      }}>
+        <span style={{
+          fontFamily: fonts.sans, fontSize: 13, fontWeight: 500,
+          color: 'rgba(255,255,255,0.7)', letterSpacing: 6, textTransform: 'uppercase',
         }}>
-          <span style={{
-            fontFamily: fonts.sans, fontSize: 13, fontWeight: 500,
-            color: 'rgba(255,255,255,0.7)', letterSpacing: 6, textTransform: 'uppercase',
-          }}>
-            Stoa
-          </span>
-        </div>
-        <div style={{ position: 'absolute', bottom: 28, left: 24, right: 24 }}>
-          <p style={{ fontFamily: fonts.sans, fontSize: 24, fontWeight: 300, color: '#fff', marginBottom: 4 }}>
-            {timeConfig.greeting}
-          </p>
-          <p style={{ fontFamily: fonts.sans, fontSize: 13, fontWeight: 400, color: 'rgba(255,255,255,0.5)' }}>
-            {timeConfig.subtitle}
-          </p>
-        </div>
+          Stoa
+        </span>
       </div>
-
-      {/* ========== TIME-AWARE SUGGESTION ========== */}
-      <div style={{ padding: '16px 20px 0' }}>
-        <div style={{
-          background: colors.surface, borderRadius: 14, padding: '18px 20px',
-          display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer',
-          border: `1px solid ${colors.border}`,
-        }}>
-          <div style={{
-            width: 42, height: 42, borderRadius: 12,
-            background: 'rgba(255,255,255,0.06)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-          }}>
-            {timeOfDay === 'morning' && (
-              <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.text2} strokeWidth={1.5} strokeLinecap="round">
-                <circle cx="12" cy="12" r="5" /><line x1="12" y1="1" x2="12" y2="3" /><line x1="12" y1="21" x2="12" y2="23" />
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" /><line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-                <line x1="1" y1="12" x2="3" y2="12" /><line x1="21" y1="12" x2="23" y2="12" />
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" /><line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-              </svg>
-            )}
-            {timeOfDay === 'afternoon' && (
-              <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.text2} strokeWidth={1.5} strokeLinecap="round">
-                <path d="M13 4v4l3 3M9 20l3-6 3 6M12 4a1 1 0 100-2 1 1 0 000 2z" /><path d="M7 20h10" />
-              </svg>
-            )}
-            {timeOfDay === 'evening' && (
-              <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.text2} strokeWidth={1.5} strokeLinecap="round">
-                <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
-              </svg>
-            )}
-            {timeOfDay === 'night' && (
-              <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.text2} strokeWidth={1.5} strokeLinecap="round">
-                <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
-                <path d="M3 3l1.5 1.5M21 3l-1.5 1.5M12 1v2" />
-              </svg>
-            )}
-          </div>
-          <div style={{ flex: 1 }}>
-            <p style={{ fontFamily: fonts.sans, fontSize: 14, fontWeight: 500, color: colors.text, marginBottom: 3 }}>
-              {timeConfig.suggestion}
-            </p>
-            <p style={{ fontFamily: fonts.sans, fontSize: 12, color: colors.text3, lineHeight: 1.4 }}>
-              {timeConfig.suggestionDesc}
-            </p>
-          </div>
-          <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={colors.text3} strokeWidth={2} strokeLinecap="round">
-            <polyline points="9 18 15 12 9 6" />
-          </svg>
-        </div>
-      </div>
-
-      {/* ========== TODAY'S STATS ========== */}
-      <div style={{ padding: '24px 20px 0' }}>
-        <p style={{
-          fontFamily: fonts.sans, fontSize: 10, fontWeight: 600,
-          color: colors.text3, letterSpacing: 3, textTransform: 'uppercase',
-          marginBottom: 14, paddingLeft: 4,
-        }}>
-          Today
+      <div style={{ position: 'absolute', bottom: 28, left: 24, right: 24 }}>
+        <p style={{ fontFamily: fonts.sans, fontSize: 24, fontWeight: 300, color: '#fff', marginBottom: 4 }}>
+          {timeConfig.greeting}
         </p>
+        <p style={{ fontFamily: fonts.sans, fontSize: 13, fontWeight: 400, color: 'rgba(255,255,255,0.5)' }}>
+          {timeConfig.subtitle}
+        </p>
+      </div>
+    </div>
+  )
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
-          {/* Walk */}
-          <div style={{
-            background: colors.surface, borderRadius: 14, padding: '18px 16px',
-            display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-            minHeight: 120,
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.text2} strokeWidth={1.5} strokeLinecap="round">
-                <path d="M13 4v4l3 3M9 20l3-6 3 6M12 4a1 1 0 100-2 1 1 0 000 2z" />
-                <path d="M7 20h10" />
-              </svg>
-              <span style={{ fontFamily: fonts.sans, fontSize: 9, fontWeight: 600, color: colors.text3, letterSpacing: 1, textTransform: 'uppercase' }}>Walk</span>
-            </div>
-            <div>
-              <p style={{ fontFamily: fonts.sans, fontSize: 28, fontWeight: 300, color: colors.text, lineHeight: 1 }}>
-                32 <span style={{ fontSize: 13, color: colors.text2 }}>min</span>
-              </p>
-              <p style={{ fontFamily: fonts.sans, fontSize: 11, color: colors.text3, marginTop: 4 }}>1.8 miles</p>
-            </div>
+  const suggestionSection = (
+    <div style={{ padding: '16px 20px 0' }}>
+      <div style={{
+        background: colors.surface, borderRadius: 14, padding: '18px 20px',
+        display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer',
+        border: `1px solid ${colors.border}`,
+      }}>
+        <div style={{
+          width: 42, height: 42, borderRadius: 12,
+          background: tint !== 'transparent' ? tint : 'rgba(255,255,255,0.06)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+        }}>
+          {timeOfDay === 'morning' && (
+            <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.text2} strokeWidth={1.5} strokeLinecap="round">
+              <circle cx="12" cy="12" r="5" /><line x1="12" y1="1" x2="12" y2="3" /><line x1="12" y1="21" x2="12" y2="23" />
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" /><line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+              <line x1="1" y1="12" x2="3" y2="12" /><line x1="21" y1="12" x2="23" y2="12" />
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" /><line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+            </svg>
+          )}
+          {timeOfDay === 'afternoon' && (
+            <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.text2} strokeWidth={1.5} strokeLinecap="round">
+              <path d="M13 4v4l3 3M9 20l3-6 3 6M12 4a1 1 0 100-2 1 1 0 000 2z" /><path d="M7 20h10" />
+            </svg>
+          )}
+          {timeOfDay === 'evening' && (
+            <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.text2} strokeWidth={1.5} strokeLinecap="round">
+              <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+            </svg>
+          )}
+          {timeOfDay === 'night' && (
+            <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.text2} strokeWidth={1.5} strokeLinecap="round">
+              <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+              <path d="M3 3l1.5 1.5M21 3l-1.5 1.5M12 1v2" />
+            </svg>
+          )}
+        </div>
+        <div style={{ flex: 1 }}>
+          <p style={{ fontFamily: fonts.sans, fontSize: 14, fontWeight: 500, color: colors.text, marginBottom: 3 }}>
+            {timeConfig.suggestion}
+          </p>
+          <p style={{ fontFamily: fonts.sans, fontSize: 12, color: colors.text3, lineHeight: 1.4 }}>
+            {timeConfig.suggestionDesc}
+          </p>
+        </div>
+        <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={colors.text3} strokeWidth={2} strokeLinecap="round">
+          <polyline points="9 18 15 12 9 6" />
+        </svg>
+      </div>
+    </div>
+  )
+
+  const statsSection = (
+    <div style={{ padding: '24px 20px 0' }}>
+      <p style={{
+        fontFamily: fonts.sans, fontSize: 10, fontWeight: 600,
+        color: colors.text3, letterSpacing: 3, textTransform: 'uppercase',
+        marginBottom: 14, paddingLeft: 4,
+      }}>
+        {stats.header}
+      </p>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+        {/* Walk */}
+        <div style={{
+          background: colors.surface, borderRadius: 14, padding: '18px 16px',
+          display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+          minHeight: 120, position: 'relative', overflow: 'hidden',
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.text2} strokeWidth={1.5} strokeLinecap="round">
+              <path d="M13 4v4l3 3M9 20l3-6 3 6M12 4a1 1 0 100-2 1 1 0 000 2z" />
+              <path d="M7 20h10" />
+            </svg>
+            <span style={{ fontFamily: fonts.sans, fontSize: 9, fontWeight: 600, color: colors.text3, letterSpacing: 1, textTransform: 'uppercase' }}>Walk</span>
           </div>
-
-          {/* Stillness */}
-          <div style={{
-            background: colors.surface, borderRadius: 14, padding: '18px 16px',
-            display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-            minHeight: 120,
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.text2} strokeWidth={1.5} strokeLinecap="round">
-                <circle cx="12" cy="12" r="10" />
-                <path d="M12 6v6l3 3" />
-              </svg>
-              <span style={{ fontFamily: fonts.sans, fontSize: 9, fontWeight: 600, color: colors.text3, letterSpacing: 1, textTransform: 'uppercase' }}>Stillness</span>
-            </div>
-            <div>
-              <p style={{ fontFamily: fonts.sans, fontSize: 28, fontWeight: 300, color: colors.text, lineHeight: 1 }}>
-                15 <span style={{ fontSize: 13, color: colors.text2 }}>min</span>
-              </p>
-              <p style={{ fontFamily: fonts.sans, fontSize: 11, color: colors.text3, marginTop: 4 }}>Day 34 streak</p>
-            </div>
-          </div>
-
-          {/* Water */}
-          <div style={{
-            background: colors.surface, borderRadius: 14, padding: '18px 16px',
-            display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-            minHeight: 120,
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.text2} strokeWidth={1.5} strokeLinecap="round">
-                <path d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0z" />
-              </svg>
-              <span style={{ fontFamily: fonts.sans, fontSize: 9, fontWeight: 600, color: colors.text3, letterSpacing: 1, textTransform: 'uppercase' }}>Water</span>
-            </div>
-            <div>
-              <p style={{ fontFamily: fonts.sans, fontSize: 28, fontWeight: 300, color: colors.text, lineHeight: 1 }}>
-                5 <span style={{ fontSize: 13, color: colors.text2 }}>of 8</span>
-              </p>
-              <p style={{ fontFamily: fonts.sans, fontSize: 11, color: colors.text3, marginTop: 4 }}>glasses today</p>
-            </div>
-          </div>
-
-          {/* Sleep */}
-          <div style={{
-            background: colors.surface, borderRadius: 14, padding: '18px 16px',
-            display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-            minHeight: 120,
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.text2} strokeWidth={1.5} strokeLinecap="round">
-                <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
-              </svg>
-              <span style={{ fontFamily: fonts.sans, fontSize: 9, fontWeight: 600, color: colors.text3, letterSpacing: 1, textTransform: 'uppercase' }}>Sleep</span>
-            </div>
-            <div>
-              <p style={{ fontFamily: fonts.sans, fontSize: 28, fontWeight: 300, color: colors.text, lineHeight: 1 }}>
-                7.5 <span style={{ fontSize: 13, color: colors.text2 }}>hrs</span>
-              </p>
-              <p style={{ fontFamily: fonts.sans, fontSize: 11, color: colors.text3, marginTop: 4 }}>quality: good</p>
-            </div>
+          <div>
+            <p style={{ fontFamily: fonts.sans, fontSize: 28, fontWeight: 300, color: colors.text, lineHeight: 1 }}>
+              {stats.walk.value} <span style={{ fontSize: 13, color: colors.text2 }}>{stats.walk.label}</span>
+            </p>
+            <p style={{ fontFamily: fonts.sans, fontSize: 11, color: colors.text3, marginTop: 4 }}>{stats.walk.sub}</p>
+            <StatBar value={stats.walk.value} goal={stats.walk.goal} />
           </div>
         </div>
 
-        {/* Journal card */}
+        {/* Stillness */}
+        <div style={{
+          background: colors.surface, borderRadius: 14, padding: '18px 16px',
+          display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+          minHeight: 120, position: 'relative', overflow: 'hidden',
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.text2} strokeWidth={1.5} strokeLinecap="round">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 6v6l3 3" />
+            </svg>
+            <span style={{ fontFamily: fonts.sans, fontSize: 9, fontWeight: 600, color: colors.text3, letterSpacing: 1, textTransform: 'uppercase' }}>Stillness</span>
+          </div>
+          <div>
+            <p style={{ fontFamily: fonts.sans, fontSize: 28, fontWeight: 300, color: colors.text, lineHeight: 1 }}>
+              {stats.stillness.value} <span style={{ fontSize: 13, color: colors.text2 }}>{stats.stillness.label}</span>
+            </p>
+            <p style={{ fontFamily: fonts.sans, fontSize: 11, color: colors.text3, marginTop: 4 }}>{stats.stillness.sub}</p>
+            <StatBar value={stats.stillness.value} goal={stats.stillness.goal} />
+          </div>
+        </div>
+
+        {/* Water */}
+        <div style={{
+          background: colors.surface, borderRadius: 14, padding: '18px 16px',
+          display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+          minHeight: 120, position: 'relative', overflow: 'hidden',
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.text2} strokeWidth={1.5} strokeLinecap="round">
+              <path d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0z" />
+            </svg>
+            <span style={{ fontFamily: fonts.sans, fontSize: 9, fontWeight: 600, color: colors.text3, letterSpacing: 1, textTransform: 'uppercase' }}>Water</span>
+          </div>
+          <div>
+            <p style={{ fontFamily: fonts.sans, fontSize: 28, fontWeight: 300, color: colors.text, lineHeight: 1 }}>
+              {stats.water.value} <span style={{ fontSize: 13, color: colors.text2 }}>{stats.water.label}</span>
+            </p>
+            <p style={{ fontFamily: fonts.sans, fontSize: 11, color: colors.text3, marginTop: 4 }}>{stats.water.sub}</p>
+            <StatBar value={stats.water.value} goal={stats.water.goal} />
+          </div>
+        </div>
+
+        {/* Sleep */}
+        <div style={{
+          background: colors.surface, borderRadius: 14, padding: '18px 16px',
+          display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+          minHeight: 120, position: 'relative', overflow: 'hidden',
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.text2} strokeWidth={1.5} strokeLinecap="round">
+              <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+            </svg>
+            <span style={{ fontFamily: fonts.sans, fontSize: 9, fontWeight: 600, color: colors.text3, letterSpacing: 1, textTransform: 'uppercase' }}>Sleep</span>
+          </div>
+          <div>
+            <p style={{ fontFamily: fonts.sans, fontSize: 28, fontWeight: 300, color: colors.text, lineHeight: 1 }}>
+              {stats.sleep.value} <span style={{ fontSize: 13, color: colors.text2 }}>{stats.sleep.label}</span>
+            </p>
+            <p style={{ fontFamily: fonts.sans, fontSize: 11, color: colors.text3, marginTop: 4 }}>{stats.sleep.sub}</p>
+            <StatBar value={parseFloat(stats.sleep.value)} goal={parseFloat(stats.sleep.goal)} />
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+
+  const journalGratitudeSection = (
+    <>
+      {/* Journal card */}
+      <div style={{ padding: '0 20px' }}>
         <div style={{
           background: colors.surface, borderRadius: 14, padding: '18px 20px',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -343,7 +473,7 @@ export default function Home() {
         }}>
           <div>
             <p style={{ fontFamily: fonts.sans, fontSize: 15, fontWeight: 500, color: colors.text, marginBottom: 3 }}>Open Journal</p>
-            <p style={{ fontFamily: fonts.sans, fontSize: 12, color: colors.text3 }}>Last entry: 2 hours ago</p>
+            <p style={{ fontFamily: fonts.sans, fontSize: 12, color: colors.text3 }}>{timeCopy.journal}</p>
           </div>
           <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.text2} strokeWidth={1.5} strokeLinecap="round">
             <polyline points="9 18 15 12 9 6" />
@@ -356,12 +486,15 @@ export default function Home() {
             Today I'm Grateful For
           </p>
           <p style={{ fontFamily: fonts.sans, fontSize: 14, fontWeight: 300, color: colors.text2, fontStyle: 'italic' }}>
-            Tap to write...
+            {timeCopy.gratitude}
           </p>
         </div>
       </div>
+    </>
+  )
 
-      {/* ========== STILLNESS PLAYER ========== */}
+  const stillnessSection = (
+    <>
       <div style={{ position: 'relative', height: 220, margin: '24px 16px 4px', borderRadius: 16, overflow: 'hidden' }}>
         <img src={photos.stillness} alt="" style={{
           width: '100%', height: '100%', objectFit: 'cover',
@@ -370,12 +503,15 @@ export default function Home() {
           position: 'absolute', inset: 0,
           background: 'linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.5) 100%)',
         }} />
+        {tint !== 'transparent' && (
+          <div style={{ position: 'absolute', inset: 0, background: tint }} />
+        )}
         <div style={{ position: 'absolute', top: 20, left: 20 }}>
           <p style={{ fontFamily: fonts.sans, fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.4)', letterSpacing: 3, textTransform: 'uppercase', marginBottom: 6 }}>
             Take a Moment
           </p>
           <p style={{ fontFamily: fonts.sans, fontSize: 18, fontWeight: 300, color: '#fff' }}>
-            sit in stillness..
+            {timeCopy.stillness}
           </p>
         </div>
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '0 20px 16px' }}>
@@ -427,6 +563,68 @@ export default function Home() {
           Record Stillness
         </button>
       </div>
+    </>
+  )
+
+  const calmButton = (
+    <div style={{ padding: '28px 24px' }}>
+      <button style={{
+        width: '100%', fontFamily: fonts.sans, fontSize: 12, fontWeight: 600,
+        letterSpacing: 2, textTransform: 'uppercase',
+        color: colors.bg, background: '#fff',
+        borderRadius: radius.pill, padding: '18px 0', cursor: 'pointer',
+      }}>
+        I Need Calm Now
+      </button>
+    </div>
+  )
+
+  // === Time-based section ordering ===
+  // Top sections shift; bottom half (standalone1, weekly, ritual, team, playlists, watch, vision, movement, groups, standalone2) stays fixed
+  const getTimeSections = () => {
+    if (timeOfDay === 'night') {
+      return [
+        heroSection,
+        statsSection,
+        stillnessSection,
+        suggestionSection,
+        calmButton,
+        journalGratitudeSection,
+      ]
+    }
+    if (timeOfDay === 'evening') {
+      return [
+        heroSection,
+        suggestionSection,
+        journalGratitudeSection,
+        statsSection,
+        stillnessSection,
+      ]
+    }
+    // morning + afternoon
+    return [
+      heroSection,
+      suggestionSection,
+      statsSection,
+      journalGratitudeSection,
+      stillnessSection,
+    ]
+  }
+
+  const timeSections = getTimeSections()
+
+  return (
+    <div style={{
+      height: '100%',
+      overflowY: 'auto',
+      background: colors.bg,
+      paddingBottom: 160,
+    }}>
+
+      {/* ========== TIME-ORDERED TOP SECTIONS ========== */}
+      {timeSections.map((section, i) => (
+        <div key={i}>{section}</div>
+      ))}
 
       {/* ========== STANDALONE PHOTO 1 (has its own text — show full image) ========== */}
       <div style={{ margin: '24px 16px 4px', borderRadius: 16, overflow: 'hidden', height: 240, background: '#111' }}>
@@ -686,22 +884,13 @@ export default function Home() {
         <img src={photos.standalone2} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
       </div>
 
-      {/* ========== I NEED CALM NOW ========== */}
-      <div style={{ padding: '28px 24px' }}>
-        <button style={{
-          width: '100%', fontFamily: fonts.sans, fontSize: 12, fontWeight: 600,
-          letterSpacing: 2, textTransform: 'uppercase',
-          color: colors.bg, background: '#fff',
-          borderRadius: radius.pill, padding: '18px 0', cursor: 'pointer',
-        }}>
-          I Need Calm Now
-        </button>
-      </div>
+      {/* ========== I NEED CALM NOW (only if not already placed by night layout) ========== */}
+      {timeOfDay !== 'night' && calmButton}
 
       {/* ========== INSIGHT ========== */}
       <div style={{ padding: '0 32px 32px', textAlign: 'center' }}>
         <p style={{ fontFamily: fonts.sans, fontSize: 14, fontWeight: 300, color: colors.text2, lineHeight: 1.8, letterSpacing: 0.3 }}>
-          "Day 21, the pathway forms. Day 66, it becomes automatic. Day 90, you are rewired."
+          {timeCopy.quote}
         </p>
       </div>
     </div>
