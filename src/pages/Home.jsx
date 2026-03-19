@@ -23,7 +23,7 @@ export default function Home() {
       height: '100%',
       overflowY: 'auto',
       background: colors.bg,
-      paddingBottom: 100,
+      paddingBottom: 140,
     }}>
 
       {/* ========== HERO — "Dear body, I trust you." ========== */}

@@ -15,7 +15,7 @@ export default function Progress() {
     <div style={{
       height: '100%',
       overflowY: 'auto',
-      paddingBottom: 100,
+      paddingBottom: 140,
       background: colors.bg,
     }}>
       <div style={{ padding: '60px 24px 0' }}>
