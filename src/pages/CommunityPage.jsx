@@ -160,7 +160,22 @@ export default function CommunityPage() {
     setComposing(false)
   }
 
-  const base = DEFAULT_COMMUNITIES[slug]
+  // Check hardcoded defaults first, then localStorage for user-created communities
+  let base = DEFAULT_COMMUNITIES[slug]
+  if (!base) {
+    try {
+      const stored = localStorage.getItem('stoa-communities')
+      const all = stored ? JSON.parse(stored) : []
+      const found = all.find(c => c.slug === slug)
+      if (found) {
+        base = {
+          ...found,
+          posts: [],
+          events: [],
+        }
+      }
+    } catch {}
+  }
   if (!base) {
     return (
       <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: colors.bg }}>

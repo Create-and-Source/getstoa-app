@@ -2,12 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { colors, fonts, radius } from '../theme'
 
-// Clean photos — safe for text overlay
-const CLEAN_PHOTOS = [
-  '/mudra.jpg', '/leaf-dark.jpg', '/yoga.jpg', '/sage-bowl.jpg',
-]
-
-// Photos with text baked in — show standalone only
+const CLEAN_PHOTOS = ['/mudra.jpg', '/leaf-dark.jpg', '/yoga.jpg', '/sage-bowl.jpg']
 const TEXT_PHOTOS = [
   '/live-slowly.jpg', '/bodymindssoul.jpg', '/meditation.jpg', '/soul.jpg',
   '/whole.jpg', '/water.jpg', '/harmony.jpg', '/routines.jpg',
@@ -26,47 +21,34 @@ const UNIVERSE_NOTES = [
   "I am aligned with my highest self.",
   "Abundance flows to me effortlessly.",
   "I trust the timing of my life.",
-  "I am the creator of my reality.",
-  "Every day I am growing into who I was always meant to be.",
-  "I radiate confidence, grace, and power.",
-  "My peace is my priority and my power.",
-  "I am surrounded by love and support.",
-  "The best is always coming.",
-  "I am open to receiving everything the universe has for me.",
-  "My intuition always guides me to the right path.",
-  "I am building a life that feels as good as it looks.",
-  "I release what was and welcome what is.",
 ]
 
 function seededRandom(seed) {
   let s = seed
-  return () => {
-    s = (s * 16807 + 0) % 2147483647
-    return (s - 1) / 2147483646
-  }
+  return () => { s = (s * 16807 + 0) % 2147483647; return (s - 1) / 2147483646 }
 }
-
 function getDailySeed() {
   const d = new Date()
   return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate()
 }
-
 function pickNote(pageIndex) {
   const seed = getDailySeed() + pageIndex * 9999
   const rng = seededRandom(seed)
   return UNIVERSE_NOTES[Math.floor(rng() * UNIVERSE_NOTES.length)]
 }
-
 function shuffle(arr) {
   const a = [...arr]
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]]
-  }
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]] }
   return a
 }
 
-const SOUNDSCAPES = ['Rain', 'Ocean', 'Forest', 'Fire', 'Night']
+const SOUNDSCAPES = [
+  { name: 'Rain', type: 'brown', filterFreq: 400 },
+  { name: 'Ocean', type: 'brown', filterFreq: 250 },
+  { name: 'Forest', type: 'pink', filterFreq: 800 },
+  { name: 'Fire', type: 'brown', filterFreq: 180 },
+  { name: 'Night', type: 'pink', filterFreq: 350 },
+]
 
 const AUDIO_LIBRARY = [
   { title: 'Body Scan Meditation', practitioner: 'Amara J.', duration: '15 min', color: '#1E2A20' },
@@ -94,53 +76,182 @@ const INTENTION_CARDS = [
   'My body is my home. I treat it with love.',
   'I am exactly where I need to be.',
   'Today I release what no longer serves me.',
+  'I trust the process.',
+  'I am allowed to take up space.',
 ]
+
+// Web Audio noise generator
+function createNoise(audioCtx, type) {
+  const bufferSize = audioCtx.sampleRate * 2
+  const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate)
+  const data = buffer.getChannelData(0)
+
+  if (type === 'brown') {
+    let lastOut = 0
+    for (let i = 0; i < bufferSize; i++) {
+      const white = Math.random() * 2 - 1
+      data[i] = (lastOut + (0.02 * white)) / 1.02
+      lastOut = data[i]
+      data[i] *= 3.5
+    }
+  } else {
+    // pink noise approximation
+    let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0
+    for (let i = 0; i < bufferSize; i++) {
+      const white = Math.random() * 2 - 1
+      b0 = 0.99886 * b0 + white * 0.0555179
+      b1 = 0.99332 * b1 + white * 0.0750759
+      b2 = 0.96900 * b2 + white * 0.1538520
+      b3 = 0.86650 * b3 + white * 0.3104856
+      b4 = 0.55000 * b4 + white * 0.5329522
+      b5 = -0.7616 * b5 - white * 0.0168980
+      data[i] = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362
+      data[i] *= 0.11
+      b6 = white * 0.115926
+    }
+  }
+
+  const source = audioCtx.createBufferSource()
+  source.buffer = buffer
+  source.loop = true
+
+  return source
+}
 
 export default function Mind() {
   const navigate = useNavigate()
   const [breathing, setBreathing] = useState(false)
   const [breathPhase, setBreathPhase] = useState('inhale')
+  const [breathCount, setBreathCount] = useState(4)
   const [breathScale, setBreathScale] = useState(1)
   const [activeSound, setActiveSound] = useState(null)
-  const intervalRef = useRef(null)
+  const breathIntervalRef = useRef(null)
+  const breathCountRef = useRef(null)
+  const audioCtxRef = useRef(null)
+  const audioSourceRef = useRef(null)
+  const gainRef = useRef(null)
 
-  // Pick random photos on mount
+  // Daily intention
+  const todayKey = new Date().toISOString().split('T')[0]
+  const [savedIntention, setSavedIntention] = useState(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem('stoa-daily-intention') || '{}')
+      return stored[todayKey] || null
+    } catch { return null }
+  })
+
+  function saveIntention(text) {
+    setSavedIntention(text)
+    try {
+      const stored = JSON.parse(localStorage.getItem('stoa-daily-intention') || '{}')
+      stored[todayKey] = text
+      localStorage.setItem('stoa-daily-intention', JSON.stringify(stored))
+    } catch {}
+  }
+
   const photos = useMemo(() => {
     const clean = shuffle(CLEAN_PHOTOS)
-    const text = shuffle(TEXT_PHOTOS)
-    return {
-      hero: clean[0],         // text overlay "Stillness"
-      dividerQuote: clean[1], // text overlay with quote
-    }
+    return { hero: clean[0], dividerQuote: clean[1] }
   }, [])
 
+  // Breathing exercise with 4-count phases
   useEffect(() => {
     if (!breathing) {
       setBreathScale(1)
-      if (intervalRef.current) clearInterval(intervalRef.current)
+      setBreathPhase('inhale')
+      setBreathCount(4)
+      if (breathIntervalRef.current) clearInterval(breathIntervalRef.current)
+      if (breathCountRef.current) clearInterval(breathCountRef.current)
       return
     }
-    let phase = 0
-    const cycle = () => {
-      if (phase % 2 === 0) { setBreathPhase('inhale'); setBreathScale(1.5) }
-      else { setBreathPhase('exhale'); setBreathScale(1) }
-      phase++
+
+    const phases = ['inhale', 'hold', 'exhale', 'hold']
+    const scales = [1.5, 1.5, 1, 1]
+    let phaseIdx = 0
+    let count = 4
+
+    function startPhase() {
+      setBreathPhase(phases[phaseIdx])
+      setBreathScale(scales[phaseIdx])
+      count = 4
+      setBreathCount(4)
     }
-    cycle()
-    intervalRef.current = setInterval(cycle, 4000)
-    return () => clearInterval(intervalRef.current)
+
+    startPhase()
+
+    breathCountRef.current = setInterval(() => {
+      count--
+      if (count <= 0) {
+        phaseIdx = (phaseIdx + 1) % 4
+        startPhase()
+      } else {
+        setBreathCount(count)
+      }
+    }, 1000)
+
+    return () => {
+      if (breathCountRef.current) clearInterval(breathCountRef.current)
+    }
   }, [breathing])
 
-  return (
-    <div style={{ height: '100%', overflowY: 'auto', paddingBottom: 160, background: colors.bg }}>
+  // Soundscape audio
+  function toggleSound(soundName) {
+    if (activeSound === soundName) {
+      // Stop
+      if (audioSourceRef.current) { audioSourceRef.current.stop(); audioSourceRef.current = null }
+      if (audioCtxRef.current) { audioCtxRef.current.close(); audioCtxRef.current = null }
+      setActiveSound(null)
+      return
+    }
 
-      {/* Hero image — rounded, shorter */}
+    // Stop previous
+    if (audioSourceRef.current) { audioSourceRef.current.stop(); audioSourceRef.current = null }
+    if (audioCtxRef.current) { audioCtxRef.current.close(); audioCtxRef.current = null }
+
+    try {
+      const sound = SOUNDSCAPES.find(s => s.name === soundName)
+      const ctx = new (window.AudioContext || window.webkitAudioContext)()
+      audioCtxRef.current = ctx
+
+      const source = createNoise(ctx, sound.type)
+      audioSourceRef.current = source
+
+      // Filter to shape the sound
+      const filter = ctx.createBiquadFilter()
+      filter.type = 'lowpass'
+      filter.frequency.value = sound.filterFreq
+
+      // Gain
+      const gain = ctx.createGain()
+      gain.gain.value = 0.3
+      gainRef.current = gain
+
+      source.connect(filter)
+      filter.connect(gain)
+      gain.connect(ctx.destination)
+      source.start()
+
+      setActiveSound(soundName)
+    } catch {
+      setActiveSound(null)
+    }
+  }
+
+  // Cleanup audio on unmount
+  useEffect(() => {
+    return () => {
+      if (audioSourceRef.current) try { audioSourceRef.current.stop() } catch {}
+      if (audioCtxRef.current) try { audioCtxRef.current.close() } catch {}
+    }
+  }, [])
+
+  return (
+    <div style={{ height: '100%', overflowY: 'auto', paddingBottom: 160, background: colors.bg, WebkitOverflowScrolling: 'touch' }}>
+
+      {/* Hero */}
       <div style={{ position: 'relative', height: 300, margin: '8px 16px 0', borderRadius: 20, overflow: 'hidden' }}>
         <img src={photos.hero} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-        <div style={{
-          position: 'absolute', inset: 0,
-          background: 'linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(13,13,13,0.9) 100%)',
-        }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(13,13,13,0.9) 100%)' }} />
         <div style={{ position: 'absolute', bottom: 28, left: 24, right: 24 }}>
           <p style={{ fontFamily: fonts.sans, fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.4)', letterSpacing: 3, textTransform: 'uppercase', marginBottom: 6 }}>
             Your sanctuary
@@ -151,7 +262,7 @@ export default function Mind() {
         </div>
       </div>
 
-      {/* Breathing Exercise */}
+      {/* Breathing Exercise — with count */}
       <div style={{ padding: '36px 24px 32px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <div
           onClick={() => setBreathing(!breathing)}
@@ -159,20 +270,25 @@ export default function Mind() {
             width: 140, height: 140, borderRadius: '50%',
             background: 'radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%)',
             border: '1px solid rgba(255,255,255,0.15)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer', transform: `scale(${breathScale})`, transition: 'transform 4s ease-in-out',
           }}
         >
           <span style={{ fontFamily: fonts.sans, fontSize: 13, fontWeight: 300, color: colors.text2, letterSpacing: 1 }}>
             {breathing ? breathPhase : 'begin'}
           </span>
+          {breathing && (
+            <span style={{ fontFamily: fonts.mono, fontSize: 24, fontWeight: 300, color: colors.text, marginTop: 4 }}>
+              {breathCount}
+            </span>
+          )}
         </div>
         <p style={{ fontFamily: fonts.sans, fontSize: 11, color: colors.text3, marginTop: 16 }}>
-          {breathing ? 'Tap to stop' : 'Tap to breathe'}
+          {breathing ? 'Tap to stop · Box breathing (4-4-4-4)' : 'Tap to breathe'}
         </p>
       </div>
 
-      {/* Soundscapes */}
+      {/* Soundscapes — real audio */}
       <div style={{ padding: '0 24px 28px' }}>
         <p style={{ fontFamily: fonts.sans, fontSize: 10, fontWeight: 600, color: colors.text3, letterSpacing: 3, textTransform: 'uppercase', marginBottom: 14 }}>
           Soundscapes
@@ -180,23 +296,75 @@ export default function Mind() {
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {SOUNDSCAPES.map(s => (
             <button
-              key={s}
-              onClick={() => setActiveSound(activeSound === s ? null : s)}
+              key={s.name}
+              onClick={() => toggleSound(s.name)}
               style={{
                 fontFamily: fonts.sans, fontSize: 12, fontWeight: 500,
-                color: activeSound === s ? '#fff' : colors.text2,
-                background: activeSound === s ? 'rgba(255,255,255,0.12)' : colors.surface,
-                border: `1px solid ${activeSound === s ? 'rgba(255,255,255,0.2)' : 'transparent'}`,
+                color: activeSound === s.name ? '#fff' : colors.text2,
+                background: activeSound === s.name ? 'rgba(255,255,255,0.12)' : colors.surface,
+                border: `1px solid ${activeSound === s.name ? 'rgba(255,255,255,0.2)' : 'transparent'}`,
                 borderRadius: radius.pill, padding: '10px 18px', cursor: 'pointer', transition: 'all 0.2s',
+                display: 'flex', alignItems: 'center', gap: 6,
               }}
             >
-              {s}
+              {activeSound === s.name && (
+                <span style={{ display: 'flex', gap: 2, alignItems: 'flex-end', height: 12 }}>
+                  {[0, 1, 2].map(i => (
+                    <span key={i} style={{
+                      width: 2, background: '#fff', borderRadius: 1,
+                      animation: `eqBar 0.8s ${i * 0.15}s ease-in-out infinite alternate`,
+                    }} />
+                  ))}
+                </span>
+              )}
+              {s.name}
             </button>
           ))}
         </div>
+        {activeSound && (
+          <p style={{ fontFamily: fonts.sans, fontSize: 11, color: colors.text3, marginTop: 10, fontStyle: 'italic' }}>
+            Playing {activeSound.toLowerCase()} sounds...
+          </p>
+        )}
       </div>
 
-      {/* Divider — quote on clean photo */}
+      {/* Daily Intention — saveable */}
+      <div style={{ padding: '0 24px 28px' }}>
+        <p style={{ fontFamily: fonts.sans, fontSize: 10, fontWeight: 600, color: colors.text3, letterSpacing: 3, textTransform: 'uppercase', marginBottom: 14 }}>
+          {savedIntention ? 'Today\'s Intention' : 'Choose Your Intention'}
+        </p>
+        {savedIntention ? (
+          <div style={{
+            background: colors.surface, borderRadius: 14, padding: '24px 20px',
+            border: '1px solid rgba(255,255,255,0.1)', textAlign: 'center',
+          }}>
+            <p style={{ fontFamily: fonts.sans, fontSize: 16, fontWeight: 300, color: colors.text, fontStyle: 'italic', lineHeight: 1.6, marginBottom: 12 }}>
+              "{savedIntention}"
+            </p>
+            <p onClick={() => saveIntention(null)} style={{ fontFamily: fonts.sans, fontSize: 11, color: colors.text3, cursor: 'pointer' }}>
+              Change intention
+            </p>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 4, scrollbarWidth: 'none' }}>
+            {INTENTION_CARDS.map((text, i) => (
+              <div key={i} onClick={() => saveIntention(text)} style={{
+                minWidth: 150, width: 150, flexShrink: 0,
+                background: colors.surface, borderRadius: 14,
+                border: `1px solid ${colors.border}`,
+                padding: '24px 16px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer', transition: 'border 0.2s',
+              }}>
+                <p style={{ fontFamily: fonts.sans, fontSize: 13, fontWeight: 300, fontStyle: 'italic', color: colors.text2, textAlign: 'center', lineHeight: 1.5 }}>
+                  {text}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Divider quote */}
       <div style={{ position: 'relative', margin: '0 16px 4px', borderRadius: 16, overflow: 'hidden', height: 180 }}>
         <img src={photos.dividerQuote} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)' }} />
@@ -211,9 +379,8 @@ export default function Mind() {
       <div style={{ padding: '24px 0 0' }}>
         <div style={{ padding: '0 24px', marginBottom: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
           <p style={{ fontFamily: fonts.sans, fontSize: 10, fontWeight: 600, color: colors.text3, letterSpacing: 3, textTransform: 'uppercase' }}>Audio Library</p>
-          <span style={{ fontFamily: fonts.sans, fontSize: 11, fontWeight: 500, color: colors.text3, cursor: 'pointer' }}>See All</span>
         </div>
-        <div style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingLeft: 24, paddingRight: 24, paddingBottom: 4 }}>
+        <div style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingLeft: 24, paddingRight: 24, paddingBottom: 4, scrollbarWidth: 'none' }}>
           {AUDIO_LIBRARY.map((item, i) => (
             <div key={i} onClick={() => navigate('/stillness')} style={{ minWidth: 160, borderRadius: 14, overflow: 'hidden', background: item.color, cursor: 'pointer', flexShrink: 0 }}>
               <div style={{ height: 90, background: `linear-gradient(135deg, ${item.color} 0%, rgba(255,255,255,0.04) 100%)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -277,41 +444,13 @@ export default function Mind() {
         </div>
       </div>
 
-      {/* Daily Intention Cards */}
-      <div style={{ padding: '24px 0 0' }}>
-        <p style={{ fontFamily: fonts.sans, fontSize: 10, fontWeight: 600, color: colors.text3, letterSpacing: 3, textTransform: 'uppercase', marginBottom: 14, paddingLeft: 24 }}>
-          Daily Intention Cards
-        </p>
-        <div style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingLeft: 24, paddingRight: 24, paddingBottom: 4 }}>
-          {INTENTION_CARDS.map((text, i) => (
-            <div key={i} style={{
-              minWidth: 140, width: 140, flexShrink: 0,
-              background: colors.surface, borderRadius: 14,
-              borderTop: '1px solid rgba(255,255,255,0.08)',
-              padding: '24px 16px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              <p style={{ fontFamily: fonts.sans, fontSize: 13, fontWeight: 300, fontStyle: 'italic', color: colors.text2, textAlign: 'center', lineHeight: 1.5 }}>
-                {text}
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Note from the Universe */}
+      {/* Universe Note */}
       <div style={{ margin: '24px 16px', background: colors.surface, borderRadius: 16, padding: '32px 28px', textAlign: 'center' }}>
         <div style={{ width: 40, height: 1, background: 'rgba(255,255,255,0.06)', margin: '0 auto 20px' }} />
-        <p style={{
-          fontFamily: fonts.sans, fontSize: 10, fontWeight: 600,
-          color: colors.text3, letterSpacing: 3, textTransform: 'uppercase',
-          marginBottom: 16,
-        }}>
+        <p style={{ fontFamily: fonts.sans, fontSize: 10, fontWeight: 600, color: colors.text3, letterSpacing: 3, textTransform: 'uppercase', marginBottom: 16 }}>
           Note from the Universe
         </p>
-        <p style={{
-          fontFamily: fonts.sans, fontSize: 15, fontWeight: 300,
-          color: colors.text, fontStyle: 'italic', lineHeight: 1.7,
-        }}>
+        <p style={{ fontFamily: fonts.sans, fontSize: 15, fontWeight: 300, color: colors.text, fontStyle: 'italic', lineHeight: 1.7 }}>
           "{pickNote(1)}"
         </p>
       </div>
@@ -330,6 +469,14 @@ export default function Mind() {
           </p>
         </div>
       </div>
+
+      {/* EQ animation */}
+      <style>{`
+        @keyframes eqBar {
+          0% { height: 3px; }
+          100% { height: 12px; }
+        }
+      `}</style>
     </div>
   )
 }

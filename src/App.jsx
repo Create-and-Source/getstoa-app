@@ -14,6 +14,7 @@ import Playlist from './pages/Playlist'
 import SleepStory from './pages/SleepStory'
 import Rituals from './pages/Rituals'
 import RitualSession from './pages/RitualSession'
+import CreateCommunity from './pages/CreateCommunity'
 
 export default function App() {
   return (
@@ -28,6 +29,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/community" element={<Community />} />
+        <Route path="/community/create" element={<CreateCommunity />} />
         <Route path="/community/:slug" element={<CommunityPage />} />
         <Route path="/mind" element={<Mind />} />
         <Route path="/progress" element={<Progress />} />
