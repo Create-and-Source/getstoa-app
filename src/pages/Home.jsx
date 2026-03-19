@@ -32,33 +32,35 @@ function pickUnique(pool, count) {
 export default function Home() {
   const navigate = useNavigate()
 
-  // Pick random photos on mount — no repeats within the page
-  const photos = useMemo(() => {
+  // Pick ALL photos for the page in one pass — zero repeats
+  const { photos, visionItems } = useMemo(() => {
     const clean = shuffle(CLEAN_PHOTOS)
     const text = shuffle(TEXT_PHOTOS)
-    return {
-      hero: clean[0],           // text overlay safe
-      stillness: clean[1],      // text overlay safe
-      ritual: clean[2],         // text overlay safe
-      standalone1: text[0],     // has its own text, show as-is
-      standalone2: text[1],     // has its own text, show as-is
-    }
-  }, [])
 
-  // Vision board — rotate through ALL photos + affirmations
-  const visionItems = useMemo(() => {
-    const picked = pickUnique(ALL_PHOTOS, 6)
-    return [
-      { type: 'image', src: picked[0] },
+    const pagePhotos = {
+      hero: clean[0],
+      stillness: clean[1],
+      ritual: clean[2],
+      standalone1: text[0],
+      standalone2: text[1],
+    }
+
+    // Vision board gets remaining photos only (exclude the 5 already used)
+    const used = new Set([clean[0], clean[1], clean[2], text[0], text[1]])
+    const remaining = shuffle(ALL_PHOTOS.filter(p => !used.has(p)))
+    const vItems = [
+      { type: 'image', src: remaining[0] },
       { type: 'affirmation', text: 'I am becoming the person I was always meant to be.' },
-      { type: 'image', src: picked[1] },
+      { type: 'image', src: remaining[1] },
       { type: 'affirmation', text: 'She built a life so beautiful, it healed her.' },
-      { type: 'image', src: picked[2] },
+      { type: 'image', src: remaining[2] },
       { type: 'affirmation', text: 'My peace is non-negotiable.' },
-      { type: 'image', src: picked[3] },
+      { type: 'image', src: remaining[3] },
       { type: 'affirmation', text: 'I attract what I am, not what I want.' },
-      { type: 'image', src: picked[4] },
+      { type: 'image', src: remaining[4] },
     ]
+
+    return { photos: pagePhotos, visionItems: vItems }
   }, [])
 
   const [visionIdx, setVisionIdx] = useState(0)
@@ -302,9 +304,9 @@ export default function Home() {
         </button>
       </div>
 
-      {/* ========== STANDALONE PHOTO 1 (has its own text) ========== */}
-      <div style={{ margin: '24px 16px 4px', borderRadius: 16, overflow: 'hidden', height: 200 }}>
-        <img src={photos.standalone1} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+      {/* ========== STANDALONE PHOTO 1 (has its own text — show full image) ========== */}
+      <div style={{ margin: '24px 16px 4px', borderRadius: 16, overflow: 'hidden', height: 240, background: '#111' }}>
+        <img src={photos.standalone1} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
       </div>
 
       {/* ========== WEEKLY OVERVIEW ========== */}
@@ -555,9 +557,9 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ========== STANDALONE PHOTO 2 (has its own text) ========== */}
-      <div style={{ margin: '24px 16px 4px', borderRadius: 16, overflow: 'hidden', height: 200 }}>
-        <img src={photos.standalone2} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+      {/* ========== STANDALONE PHOTO 2 (has its own text — show full image) ========== */}
+      <div style={{ margin: '24px 16px 4px', borderRadius: 16, overflow: 'hidden', height: 240, background: '#111' }}>
+        <img src={photos.standalone2} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
       </div>
 
       {/* ========== I NEED CALM NOW ========== */}

@@ -196,9 +196,9 @@ export default function Mind() {
         </div>
       </div>
 
-      {/* Standalone photo (has its own text) */}
-      <div style={{ margin: '24px 16px 4px', borderRadius: 16, overflow: 'hidden', height: 180 }}>
-        <img src={photos.standalone} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+      {/* Standalone photo (has its own text — show full image) */}
+      <div style={{ margin: '24px 16px 4px', borderRadius: 16, overflow: 'hidden', height: 220, background: '#111' }}>
+        <img src={photos.standalone} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
       </div>
 
       {/* Today's Insight */}
