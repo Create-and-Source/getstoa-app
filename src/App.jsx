@@ -11,6 +11,7 @@ import Stillness from './pages/Stillness'
 import Workout from './pages/Workout'
 import Playlist from './pages/Playlist'
 import SleepStory from './pages/SleepStory'
+import Rituals from './pages/Rituals'
 
 export default function App() {
   return (
@@ -34,6 +35,7 @@ export default function App() {
         <Route path="/workout/:slug?" element={<Workout />} />
         <Route path="/playlist/:slug?" element={<Playlist />} />
         <Route path="/sleep/:slug?" element={<SleepStory />} />
+        <Route path="/rituals" element={<Rituals />} />
       </Routes>
       <TabBar />
     </div>

@@ -344,13 +344,98 @@ export default function Home() {
     </div>
   )
 
-  const suggestionSection = (
+  // Ritual system
+  const RITUAL_CATALOG = {
+    morning: [
+      { slug: 'gratitude-journal', title: 'Gratitude Journal', desc: 'Write 3 things you\'re grateful for', duration: 5 },
+      { slug: 'morning-breathwork', title: 'Morning Breathwork', desc: 'Box breathing to center your energy', duration: 10 },
+      { slug: 'intention-setting', title: 'Intention Setting', desc: 'Choose your focus for the day', duration: 3 },
+      { slug: 'morning-movement', title: 'Morning Movement', desc: 'Gentle yoga or stretching flow', duration: 15 },
+      { slug: 'hydration-ritual', title: 'Hydration Ritual', desc: 'Warm lemon water + mindful sipping', duration: 5 },
+      { slug: 'morning-pages', title: 'Morning Pages', desc: 'Stream of consciousness writing', duration: 20 },
+    ],
+    afternoon: [
+      { slug: 'mindful-walk', title: 'Mindful Walk', desc: 'Step outside, no phone, breathe', duration: 15 },
+      { slug: 'body-checkin', title: 'Body Check-In', desc: 'Scan for tension, breathe into it', duration: 5 },
+      { slug: 'gratitude-pause', title: 'Gratitude Pause', desc: 'Name 3 good things about today so far', duration: 3 },
+      { slug: 'nourishment-break', title: 'Nourishment Break', desc: 'Eat slowly, taste everything', duration: 15 },
+      { slug: 'stillness-reset', title: 'Stillness Reset', desc: 'Close your eyes, just breathe', duration: 10 },
+    ],
+    night: [
+      { slug: 'evening-reflection', title: 'Evening Reflection', desc: 'What went well? What did I learn?', duration: 10 },
+      { slug: 'digital-sunset', title: 'Digital Sunset', desc: 'All screens off, dim the lights', duration: 5 },
+      { slug: 'body-scan', title: 'Body Scan', desc: 'Release tension from head to toe', duration: 15 },
+      { slug: 'gratitude-close', title: 'Gratitude Close', desc: '3 things from today I\'m grateful for', duration: 5 },
+      { slug: 'sleep-story', title: 'Sleep Story', desc: 'Drift off with a guided narrative', duration: 25 },
+      { slug: 'tomorrows-intention', title: 'Tomorrow\'s Intention', desc: 'Set one focus for tomorrow', duration: 3 },
+    ],
+  }
+
+  const ritualTimeKey = timeOfDay === 'evening' ? 'night' : timeOfDay
+  const ritualTimeLabel = timeOfDay === 'evening' || timeOfDay === 'night' ? 'Evening' : timeOfDay === 'morning' ? 'Morning' : 'Afternoon'
+
+  const [savedRituals, setSavedRituals] = useState(() => {
+    try {
+      const stored = localStorage.getItem('stoa-rituals')
+      return stored ? JSON.parse(stored) : { morning: [], afternoon: [], night: [] }
+    } catch { return { morning: [], afternoon: [], night: [] } }
+  })
+
+  const [checkedRituals, setCheckedRituals] = useState({})
+
+  const currentRitualSlugs = savedRituals[ritualTimeKey] || []
+  const currentRituals = currentRitualSlugs
+    .map(slug => RITUAL_CATALOG[ritualTimeKey]?.find(r => r.slug === slug))
+    .filter(Boolean)
+
+  const suggestionSection = currentRituals.length > 0 ? (
     <div style={{ padding: '16px 20px 0' }}>
-      <div onClick={() => {
-        if (timeOfDay === 'afternoon') navigate('/workout/walk-breathe')
-        else if (timeOfDay === 'evening') navigate('/journal')
-        else navigate('/stillness')
-      }} style={{
+      <div style={{
+        background: colors.surface, borderRadius: 14, padding: '18px 20px',
+        border: `1px solid ${colors.border}`,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+          <p style={{ fontFamily: fonts.sans, fontSize: 14, fontWeight: 500, color: colors.text }}>
+            Your {ritualTimeLabel} Ritual
+          </p>
+          <p onClick={() => navigate('/rituals')} style={{ fontFamily: fonts.sans, fontSize: 11, color: colors.text3, cursor: 'pointer' }}>
+            Edit
+          </p>
+        </div>
+        {currentRituals.map(r => (
+          <div key={r.slug} onClick={() => setCheckedRituals(prev => ({ ...prev, [r.slug]: !prev[r.slug] }))} style={{
+            display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0',
+            borderTop: `1px solid ${colors.border}`, cursor: 'pointer',
+          }}>
+            <div style={{
+              width: 22, height: 22, borderRadius: 6,
+              border: checkedRituals[r.slug] ? 'none' : '1.5px solid rgba(255,255,255,0.25)',
+              background: checkedRituals[r.slug] ? 'rgba(255,255,255,0.15)' : 'transparent',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+            }}>
+              {checkedRituals[r.slug] && (
+                <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              )}
+            </div>
+            <div style={{ flex: 1 }}>
+              <p style={{
+                fontFamily: fonts.sans, fontSize: 13, fontWeight: 500, color: colors.text,
+                textDecoration: checkedRituals[r.slug] ? 'line-through' : 'none',
+                opacity: checkedRituals[r.slug] ? 0.4 : 1,
+              }}>
+                {r.title}
+              </p>
+            </div>
+            <p style={{ fontFamily: fonts.sans, fontSize: 11, color: colors.text3 }}>{r.duration} min</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  ) : (
+    <div style={{ padding: '16px 20px 0' }}>
+      <div onClick={() => navigate('/rituals')} style={{
         background: colors.surface, borderRadius: 14, padding: '18px 20px',
         display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer',
         border: `1px solid ${colors.border}`,
@@ -360,34 +445,13 @@ export default function Home() {
           background: tint !== 'transparent' ? tint : 'rgba(255,255,255,0.06)',
           display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
         }}>
-          {timeOfDay === 'morning' && (
-            <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.text2} strokeWidth={1.5} strokeLinecap="round">
-              <circle cx="12" cy="12" r="5" /><line x1="12" y1="1" x2="12" y2="3" /><line x1="12" y1="21" x2="12" y2="23" />
-              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" /><line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-              <line x1="1" y1="12" x2="3" y2="12" /><line x1="21" y1="12" x2="23" y2="12" />
-              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" /><line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-            </svg>
-          )}
-          {timeOfDay === 'afternoon' && (
-            <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.text2} strokeWidth={1.5} strokeLinecap="round">
-              <path d="M13 4v4l3 3M9 20l3-6 3 6M12 4a1 1 0 100-2 1 1 0 000 2z" /><path d="M7 20h10" />
-            </svg>
-          )}
-          {timeOfDay === 'evening' && (
-            <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.text2} strokeWidth={1.5} strokeLinecap="round">
-              <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
-            </svg>
-          )}
-          {timeOfDay === 'night' && (
-            <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.text2} strokeWidth={1.5} strokeLinecap="round">
-              <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
-              <path d="M3 3l1.5 1.5M21 3l-1.5 1.5M12 1v2" />
-            </svg>
-          )}
+          <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.text2} strokeWidth={1.5} strokeLinecap="round">
+            <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="16" /><line x1="8" y1="12" x2="16" y2="12" />
+          </svg>
         </div>
         <div style={{ flex: 1 }}>
           <p style={{ fontFamily: fonts.sans, fontSize: 14, fontWeight: 500, color: colors.text, marginBottom: 3 }}>
-            {timeConfig.suggestion}
+            Set up your {ritualTimeLabel.toLowerCase()} ritual
           </p>
           <p style={{ fontFamily: fonts.sans, fontSize: 12, color: colors.text3, lineHeight: 1.4 }}>
             {timeConfig.suggestionDesc}
@@ -620,7 +684,9 @@ export default function Home() {
       <button onClick={() => navigate('/stillness')} style={{
         width: '100%', fontFamily: fonts.sans, fontSize: 12, fontWeight: 600,
         letterSpacing: 2, textTransform: 'uppercase',
-        color: colors.bg, background: '#fff',
+        color: '#fff', background: 'rgba(255,255,255,0.12)',
+        border: '1px solid rgba(255,255,255,0.25)',
+        boxShadow: '0 0 20px rgba(255,255,255,0.08), 0 0 40px rgba(255,255,255,0.04)',
         borderRadius: radius.pill, padding: '18px 0', cursor: 'pointer',
       }}>
         I Need Calm Now
@@ -737,7 +803,7 @@ export default function Home() {
       </div>
 
       {/* ========== DAILY RITUAL — text overlay on clean photo ========== */}
-      <div style={{ position: 'relative', margin: '24px 16px 4px', borderRadius: 16, overflow: 'hidden', height: 200 }}>
+      <div onClick={() => navigate('/rituals')} style={{ position: 'relative', margin: '24px 16px 4px', borderRadius: 16, overflow: 'hidden', height: 200, cursor: 'pointer' }}>
         <img src={photos.ritual} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.25)' }} />
         <div style={{ position: 'absolute', bottom: 24, left: 0, right: 0, textAlign: 'center' }}>
