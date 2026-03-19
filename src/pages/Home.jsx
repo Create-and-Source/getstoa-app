@@ -46,6 +46,35 @@ function getDailySeed() {
   return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate()
 }
 
+const UNIVERSE_NOTES = [
+  "Everything is always working out for me.",
+  "I am exactly where I need to be.",
+  "I am magnetic. I attract what is meant for me.",
+  "The universe is rearranging in my favor.",
+  "I am becoming the most powerful version of myself.",
+  "I am worthy of everything I desire.",
+  "My energy speaks before I do.",
+  "I am aligned with my highest self.",
+  "Abundance flows to me effortlessly.",
+  "I trust the timing of my life.",
+  "I am the creator of my reality.",
+  "Every day I am growing into who I was always meant to be.",
+  "I radiate confidence, grace, and power.",
+  "My peace is my priority and my power.",
+  "I am surrounded by love and support.",
+  "The best is always coming.",
+  "I am open to receiving everything the universe has for me.",
+  "My intuition always guides me to the right path.",
+  "I am building a life that feels as good as it looks.",
+  "I release what was and welcome what is.",
+]
+
+function pickNote(pageIndex) {
+  const seed = getDailySeed() + pageIndex * 9999
+  const rng = seededRandom(seed)
+  return UNIVERSE_NOTES[Math.floor(rng() * UNIVERSE_NOTES.length)]
+}
+
 function shuffle(arr, rng) {
   const a = [...arr]
   const rand = rng || Math.random
@@ -205,8 +234,7 @@ export default function Home() {
       hero,
       stillness: remainingClean[0],
       ritual: remainingClean[1],
-      standalone1: text[0],
-      standalone2: text[1],
+      standalone2: text[0],
     }
 
     // Vision board: read user's saved photos from localStorage, fall back to random
@@ -222,7 +250,7 @@ export default function Home() {
     const visionPhotos = savedPhotos.length > 0
       ? shuffle(savedPhotos).slice(0, 5)
       : (() => {
-          const used = new Set([hero, remainingClean[0], remainingClean[1], text[0], text[1]])
+          const used = new Set([hero, remainingClean[0], remainingClean[1], text[0]])
           return shuffle(ALL_PHOTOS.filter(p => !used.has(p))).slice(0, 5)
         })()
 
@@ -626,9 +654,22 @@ export default function Home() {
         <div key={i}>{section}</div>
       ))}
 
-      {/* ========== STANDALONE PHOTO 1 (has its own text — show full image) ========== */}
-      <div style={{ margin: '24px 16px 4px', borderRadius: 16, overflow: 'hidden', height: 240, background: '#111' }}>
-        <img src={photos.standalone1} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+      {/* ========== NOTE FROM THE UNIVERSE ========== */}
+      <div style={{ margin: '24px 16px', background: colors.surface, borderRadius: 16, padding: '32px 28px', textAlign: 'center' }}>
+        <div style={{ width: 40, height: 1, background: 'rgba(255,255,255,0.06)', margin: '0 auto 20px' }} />
+        <p style={{
+          fontFamily: fonts.sans, fontSize: 10, fontWeight: 600,
+          color: colors.text3, letterSpacing: 3, textTransform: 'uppercase',
+          marginBottom: 16,
+        }}>
+          Note from the Universe
+        </p>
+        <p style={{
+          fontFamily: fonts.sans, fontSize: 15, fontWeight: 300,
+          color: colors.text, fontStyle: 'italic', lineHeight: 1.7,
+        }}>
+          "{pickNote(0)}"
+        </p>
       </div>
 
       {/* ========== WEEKLY OVERVIEW ========== */}

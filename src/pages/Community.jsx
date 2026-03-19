@@ -1,18 +1,51 @@
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { colors, fonts, radius } from '../theme'
 
 const CLEAN_PHOTOS = [
-  '/skin.jpg', '/mudra.jpg', '/palo-santo.jpg', '/mindbody.jpg', '/monstera.jpg',
-  '/crystal.jpg', '/leaf-dark.jpg', '/connection.jpg', '/yoga.jpg', '/sage-bowl.jpg',
+  '/skin.jpg', '/mudra.jpg', '/palo-santo.jpg',
+  '/crystal.jpg', '/leaf-dark.jpg', '/yoga.jpg', '/sage-bowl.jpg',
 ]
 
-function shuffle(arr) {
-  const a = [...arr]
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]]
+function seededRandom(seed) {
+  let s = seed
+  return () => {
+    s = (s * 16807 + 0) % 2147483647
+    return (s - 1) / 2147483646
   }
-  return a
+}
+
+function getDailySeed() {
+  const d = new Date()
+  return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate()
+}
+
+const UNIVERSE_NOTES = [
+  "Everything is always working out for me.",
+  "I am exactly where I need to be.",
+  "I am magnetic. I attract what is meant for me.",
+  "The universe is rearranging in my favor.",
+  "I am becoming the most powerful version of myself.",
+  "I am worthy of everything I desire.",
+  "My energy speaks before I do.",
+  "I am aligned with my highest self.",
+  "Abundance flows to me effortlessly.",
+  "I trust the timing of my life.",
+  "I am the creator of my reality.",
+  "Every day I am growing into who I was always meant to be.",
+  "I radiate confidence, grace, and power.",
+  "My peace is my priority and my power.",
+  "I am surrounded by love and support.",
+  "The best is always coming.",
+  "I am open to receiving everything the universe has for me.",
+  "My intuition always guides me to the right path.",
+  "I am building a life that feels as good as it looks.",
+  "I release what was and welcome what is.",
+]
+
+function pickNote(pageIndex) {
+  const seed = getDailySeed() + pageIndex * 9999
+  const rng = seededRandom(seed)
+  return UNIVERSE_NOTES[Math.floor(rng() * UNIVERSE_NOTES.length)]
 }
 
 const JOURNAL_ENTRIES = [
@@ -35,9 +68,27 @@ const GROUPS = [
   { name: 'Mindful Mamas', members: 156, color: '#1E1E2A' },
 ]
 
+const EVENTS = [
+  { title: 'Full Moon Meditation', date: 'April 5, 2026', month: 'APR', day: '5', time: '8:00 PM', leader: 'Amara J.' },
+  { title: 'Morning Ritual Workshop', date: 'April 12, 2026', month: 'APR', day: '12', time: '7:00 AM', leader: 'Sarah M.' },
+  { title: 'Breathwork & Release', date: 'April 19, 2026', month: 'APR', day: '19', time: '6:00 PM', leader: 'Nadia C.' },
+]
+
+const CHALLENGES = [
+  { title: '21 Days of Gratitude', current: 14, total: 21, participants: 312 },
+  { title: 'Morning Movement', current: 8, total: 14, participants: 187 },
+  { title: 'Digital Sunset', current: 5, total: 7, participants: 94 },
+]
+
+const FEATURED_MEMBERS = [
+  { name: 'Sarah M.', role: 'Yoga instructor & breathwork guide', followers: '1.2k' },
+  { name: 'Amara J.', role: 'Meditation teacher & sound healer', followers: '890' },
+  { name: 'Nadia C.', role: 'Pilates instructor & wellness coach', followers: '1.5k' },
+  { name: 'Maya R.', role: 'Holistic nutritionist', followers: '640' },
+]
+
 export default function Community() {
   const [activeTab, setActiveTab] = useState('journal')
-  const dividerPhoto = useMemo(() => shuffle(CLEAN_PHOTOS)[0], [])
 
   return (
     <div style={{
@@ -243,18 +294,25 @@ export default function Community() {
         </div>
       )}
 
-      {/* Divider image — rounded, smaller */}
-      <div style={{ position: 'relative', margin: '0 16px 4px', borderRadius: 16, overflow: 'hidden', height: 180 }}>
-        <img src={dividerPhoto} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.25)' }} />
-        <div style={{ position: 'absolute', bottom: 24, left: 0, right: 0, textAlign: 'center' }}>
-          <p style={{ fontFamily: fonts.sans, fontSize: 15, fontWeight: 300, color: '#fff', letterSpacing: 0.5 }}>
-            We grow together.
-          </p>
-        </div>
+      {/* Universe Note */}
+      <div style={{ margin: '24px 16px', background: colors.surface, borderRadius: 16, padding: '32px 28px', textAlign: 'center' }}>
+        <div style={{ width: 40, height: 1, background: 'rgba(255,255,255,0.06)', margin: '0 auto 20px' }} />
+        <p style={{
+          fontFamily: fonts.sans, fontSize: 10, fontWeight: 600,
+          color: colors.text3, letterSpacing: 3, textTransform: 'uppercase',
+          marginBottom: 16,
+        }}>
+          Note from the Universe
+        </p>
+        <p style={{
+          fontFamily: fonts.sans, fontSize: 15, fontWeight: 300,
+          color: colors.text, fontStyle: 'italic', lineHeight: 1.7,
+        }}>
+          "{pickNote(2)}"
+        </p>
       </div>
 
-      {/* Groups — full view */}
+      {/* Groups */}
       <div style={{ padding: '24px 24px 0' }}>
         <p style={{
           fontFamily: fonts.sans, fontSize: 10, fontWeight: 600,
@@ -294,7 +352,7 @@ export default function Community() {
         </div>
       </div>
 
-      {/* Events — coming soon */}
+      {/* Events */}
       <div style={{ padding: '28px 24px 0' }}>
         <p style={{
           fontFamily: fonts.sans, fontSize: 10, fontWeight: 600,
@@ -303,25 +361,47 @@ export default function Community() {
         }}>
           Events
         </p>
-        <div style={{
-          background: colors.surface, borderRadius: 14,
-          padding: '28px 20px', textAlign: 'center',
-        }}>
-          <svg width={28} height={28} viewBox="0 0 24 24" fill="none" stroke={colors.text3} strokeWidth={1.5} strokeLinecap="round" style={{ marginBottom: 10 }}>
-            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-            <line x1="16" y1="2" x2="16" y2="6" />
-            <line x1="8" y1="2" x2="8" y2="6" />
-            <line x1="3" y1="10" x2="21" y2="10" />
-          </svg>
-          <p style={{ fontFamily: fonts.sans, fontSize: 14, fontWeight: 300, color: colors.text2, marginBottom: 4 }}>
-            Live events & workshops
-          </p>
-          <p style={{ fontFamily: fonts.sans, fontSize: 12, color: colors.text3 }}>Coming soon</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {EVENTS.map((event, i) => (
+            <div key={i} style={{
+              background: colors.surface, borderRadius: 14, padding: '18px 20px',
+              display: 'flex', gap: 16, alignItems: 'center',
+            }}>
+              <div style={{
+                minWidth: 48, textAlign: 'center', background: 'rgba(255,255,255,0.06)',
+                borderRadius: 10, padding: '8px 6px',
+              }}>
+                <p style={{ fontFamily: fonts.sans, fontSize: 9, fontWeight: 600, color: colors.text3, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 2 }}>
+                  {event.month}
+                </p>
+                <p style={{ fontFamily: fonts.sans, fontSize: 18, fontWeight: 300, color: colors.text }}>
+                  {event.day}
+                </p>
+              </div>
+              <div style={{ flex: 1 }}>
+                <p style={{ fontFamily: fonts.sans, fontSize: 15, fontWeight: 500, color: colors.text, marginBottom: 4 }}>
+                  {event.title}
+                </p>
+                <p style={{ fontFamily: fonts.sans, fontSize: 12, color: colors.text3 }}>
+                  {event.time} &middot; Led by {event.leader}
+                </p>
+              </div>
+              <button style={{
+                fontFamily: fonts.sans, fontSize: 11, fontWeight: 600,
+                color: colors.text2, background: 'transparent',
+                border: `1px solid ${colors.border}`,
+                borderRadius: radius.pill, padding: '7px 14px',
+                cursor: 'pointer', whiteSpace: 'nowrap',
+              }}>
+                Notify Me
+              </button>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* Challenges — coming soon */}
-      <div style={{ padding: '20px 24px 0' }}>
+      {/* Challenges */}
+      <div style={{ padding: '28px 24px 0' }}>
         <p style={{
           fontFamily: fonts.sans, fontSize: 10, fontWeight: 600,
           color: colors.text3, letterSpacing: 3, textTransform: 'uppercase',
@@ -329,17 +409,84 @@ export default function Community() {
         }}>
           Challenges
         </p>
-        <div style={{
-          background: colors.surface, borderRadius: 14,
-          padding: '28px 20px', textAlign: 'center',
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {CHALLENGES.map((challenge, i) => (
+            <div key={i} style={{
+              background: colors.surface, borderRadius: 14, padding: '18px 20px',
+            }}>
+              <p style={{ fontFamily: fonts.sans, fontSize: 15, fontWeight: 500, color: colors.text, marginBottom: 6 }}>
+                {challenge.title}
+              </p>
+              <p style={{ fontFamily: fonts.sans, fontSize: 12, color: colors.text3, marginBottom: 10 }}>
+                Day {challenge.current} of {challenge.total}
+              </p>
+              <div style={{
+                height: 2, borderRadius: 1,
+                background: 'rgba(255,255,255,0.08)',
+                marginBottom: 10,
+              }}>
+                <div style={{
+                  height: '100%', borderRadius: 1,
+                  background: '#fff',
+                  width: `${Math.round((challenge.current / challenge.total) * 100)}%`,
+                }} />
+              </div>
+              <p style={{ fontFamily: fonts.sans, fontSize: 11, color: colors.text3 }}>
+                {challenge.participants} participants
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Featured Members */}
+      <div style={{ padding: '28px 0 0' }}>
+        <p style={{
+          fontFamily: fonts.sans, fontSize: 10, fontWeight: 600,
+          color: colors.text3, letterSpacing: 3, textTransform: 'uppercase',
+          marginBottom: 14, padding: '0 24px',
         }}>
-          <svg width={28} height={28} viewBox="0 0 24 24" fill="none" stroke={colors.text3} strokeWidth={1.5} strokeLinecap="round" style={{ marginBottom: 10 }}>
-            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-          </svg>
-          <p style={{ fontFamily: fonts.sans, fontSize: 14, fontWeight: 300, color: colors.text2, marginBottom: 4 }}>
-            21-day challenges & group goals
-          </p>
-          <p style={{ fontFamily: fonts.sans, fontSize: 12, color: colors.text3 }}>Coming soon</p>
+          Featured Members
+        </p>
+        <div style={{
+          display: 'flex', gap: 10, overflowX: 'auto',
+          padding: '0 24px', scrollbarWidth: 'none',
+        }}>
+          {FEATURED_MEMBERS.map((member, i) => (
+            <div key={i} style={{
+              minWidth: 140, background: colors.surface, borderRadius: 14,
+              padding: '20px 16px', textAlign: 'center', flexShrink: 0,
+            }}>
+              <div style={{
+                width: 44, height: 44, borderRadius: 22,
+                background: 'rgba(255,255,255,0.06)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                margin: '0 auto 10px',
+              }}>
+                <span style={{ fontFamily: fonts.sans, fontSize: 16, fontWeight: 300, color: colors.text2 }}>
+                  {member.name.charAt(0)}
+                </span>
+              </div>
+              <p style={{ fontFamily: fonts.sans, fontSize: 13, fontWeight: 500, color: colors.text, marginBottom: 3 }}>
+                {member.name}
+              </p>
+              <p style={{ fontFamily: fonts.sans, fontSize: 10, color: colors.text3, lineHeight: 1.4, marginBottom: 4 }}>
+                {member.role}
+              </p>
+              <p style={{ fontFamily: fonts.sans, fontSize: 10, color: colors.text3, marginBottom: 10 }}>
+                {member.followers} followers
+              </p>
+              <button style={{
+                fontFamily: fonts.sans, fontSize: 11, fontWeight: 600,
+                color: colors.text2, background: 'transparent',
+                border: `1px solid ${colors.border}`,
+                borderRadius: radius.pill, padding: '6px 16px',
+                cursor: 'pointer', width: '100%',
+              }}>
+                Follow
+              </button>
+            </div>
+          ))}
         </div>
       </div>
     </div>
