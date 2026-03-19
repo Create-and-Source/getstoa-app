@@ -1,7 +1,28 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { colors, fonts, radius } from '../theme'
 
+const VISION_ITEMS = [
+  { type: 'image', src: '/harmony.jpg', text: '' },
+  { type: 'affirmation', text: 'I am becoming the person I was always meant to be.' },
+  { type: 'image', src: '/monstera.jpg', text: '' },
+  { type: 'affirmation', text: 'She built a life so beautiful, it healed her.' },
+  { type: 'image', src: '/palo-santo.jpg', text: '' },
+  { type: 'affirmation', text: 'My peace is non-negotiable.' },
+  { type: 'image', src: '/mindbody.jpg', text: '' },
+  { type: 'affirmation', text: 'I attract what I am, not what I want.' },
+  { type: 'image', src: '/routines.jpg', text: '' },
+]
+
 export default function Home() {
+  // Vision board carousel
+  const [visionIdx, setVisionIdx] = useState(0)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setVisionIdx(i => (i + 1) % VISION_ITEMS.length)
+    }, 4000)
+    return () => clearInterval(interval)
+  }, [])
+
   // Stillness timer
   const [playing, setPlaying] = useState(false)
   const [elapsed, setElapsed] = useState(0)
@@ -591,66 +612,84 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ========== JOURNAL — recent entries horizontal scroll ========== */}
+      {/* ========== VISION BOARD — auto-rotating carousel ========== */}
       <div style={{ padding: '24px 0 0' }}>
         <div style={{ padding: '0 24px', marginBottom: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
           <p style={{
             fontFamily: fonts.sans, fontSize: 10, fontWeight: 600,
             color: colors.text3, letterSpacing: 3, textTransform: 'uppercase',
           }}>
-            Journal
+            Vision Board
           </p>
           <span style={{
             fontFamily: fonts.sans, fontSize: 11, fontWeight: 500,
             color: colors.text3, cursor: 'pointer',
           }}>
-            Open
+            Edit
           </span>
         </div>
+
+        {/* Carousel */}
         <div style={{
-          display: 'flex', gap: 12, overflowX: 'auto',
-          paddingLeft: 24, paddingRight: 24, paddingBottom: 4,
+          position: 'relative', height: 340, margin: '0 20px',
+          borderRadius: 16, overflow: 'hidden',
         }}>
-          {[
-            { text: 'Woke up grateful. The sun came through my window and I just sat there for a moment.', time: '2h ago' },
-            { text: 'Finished a 30-minute meditation for the first time. My mind wandered but I stayed.', time: 'Yesterday' },
-            { text: 'I am letting go of who I think I should be and becoming who I am.', time: '2 days ago' },
-          ].map((entry, i) => (
+          {VISION_ITEMS.map((item, i) => (
             <div key={i} style={{
-              minWidth: 220, borderRadius: 14,
-              background: colors.surface, padding: '16px 18px',
-              cursor: 'pointer', flexShrink: 0,
-              display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-              minHeight: 120,
+              position: 'absolute', inset: 0,
+              opacity: i === visionIdx ? 1 : 0,
+              transition: 'opacity 1.2s ease-in-out',
             }}>
-              <p style={{
-                fontFamily: fonts.sans, fontSize: 13, fontWeight: 400,
-                color: colors.text2, lineHeight: 1.5,
-                display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical',
-                overflow: 'hidden',
-              }}>
-                {entry.text}
-              </p>
-              <p style={{
-                fontFamily: fonts.sans, fontSize: 10, color: colors.text3, marginTop: 10,
-              }}>
-                {entry.time}
-              </p>
+              {item.type === 'image' ? (
+                <>
+                  <img src={item.src} alt="" style={{
+                    width: '100%', height: '100%', objectFit: 'cover',
+                  }} />
+                </>
+              ) : (
+                <div style={{
+                  width: '100%', height: '100%',
+                  background: colors.surface,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  padding: '40px 32px',
+                }}>
+                  <p style={{
+                    fontFamily: fonts.sans, fontSize: 18, fontWeight: 300,
+                    color: colors.text, lineHeight: 1.7, textAlign: 'center',
+                    letterSpacing: 0.3,
+                  }}>
+                    "{item.text}"
+                  </p>
+                </div>
+              )}
             </div>
           ))}
-          {/* New entry card */}
+
+          {/* Dots */}
           <div style={{
-            minWidth: 120, borderRadius: 14,
-            border: `1px dashed ${colors.border}`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', flexShrink: 0,
-            minHeight: 120,
+            position: 'absolute', bottom: 14, left: 0, right: 0,
+            display: 'flex', justifyContent: 'center', gap: 6, zIndex: 2,
           }}>
-            <div style={{ textAlign: 'center' }}>
-              <span style={{ fontFamily: fonts.sans, fontSize: 24, color: colors.text3, display: 'block' }}>+</span>
-              <span style={{ fontFamily: fonts.sans, fontSize: 10, color: colors.text3, marginTop: 4, display: 'block' }}>New Entry</span>
-            </div>
+            {VISION_ITEMS.map((_, i) => (
+              <div key={i} onClick={() => setVisionIdx(i)} style={{
+                width: i === visionIdx ? 16 : 5, height: 5, borderRadius: 3,
+                background: i === visionIdx ? '#fff' : 'rgba(255,255,255,0.3)',
+                transition: 'all 0.4s ease', cursor: 'pointer',
+              }} />
+            ))}
           </div>
+        </div>
+
+        {/* Upload your own */}
+        <div style={{ padding: '12px 20px 0', display: 'flex', justifyContent: 'center' }}>
+          <button style={{
+            fontFamily: fonts.sans, fontSize: 11, fontWeight: 500,
+            color: colors.text3, background: 'none', cursor: 'pointer',
+            padding: '8px 16px',
+            border: `1px solid ${colors.border}`, borderRadius: radius.pill,
+          }}>
+            + Add Photo or Affirmation
+          </button>
         </div>
       </div>
 
