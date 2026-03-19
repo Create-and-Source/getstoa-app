@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { colors, fonts, radius } from '../theme'
 
 // --- Seeded random ---
@@ -36,7 +36,7 @@ const sectionLabel = {
   marginBottom: 14,
 }
 
-const WHEEL_CATEGORIES = [
+const DEFAULT_WHEEL = [
   { label: 'Health', score: 7 },
   { label: 'Mind', score: 5 },
   { label: 'Finances', score: 4 },
@@ -45,6 +45,28 @@ const WHEEL_CATEGORIES = [
   { label: 'Career', score: 5 },
   { label: 'Experiences', score: 3 },
 ]
+
+const DEFAULT_MANIFESTATIONS = [
+  { intention: 'Feel strong and confident in my body', status: 'in progress' },
+  { intention: 'Find a meditation practice that sticks', status: 'received' },
+  { intention: 'Wake up excited about my life', status: 'in progress' },
+]
+
+function loadWheel() {
+  try {
+    const stored = localStorage.getItem('stoa-life-wheel')
+    if (stored) return JSON.parse(stored)
+  } catch {}
+  return DEFAULT_WHEEL
+}
+
+function loadManifestations() {
+  try {
+    const stored = localStorage.getItem('stoa-manifestations')
+    if (stored) return JSON.parse(stored)
+  } catch {}
+  return DEFAULT_MANIFESTATIONS
+}
 
 const NEURAL_PATHWAYS = [
   { name: 'Morning meditation', days: 34 },
@@ -186,6 +208,36 @@ export default function Progress() {
 
   const daysInMonth = getDaysInMonth(currentYear, currentMonth)
   const firstDay = getFirstDayOfWeek(currentYear, currentMonth)
+
+  const [wheelCategories, setWheelCategories] = useState(loadWheel)
+  const [manifestations, setManifestations] = useState(loadManifestations)
+  const [newIntention, setNewIntention] = useState('')
+
+  function updateWheelScore(index, delta) {
+    setWheelCategories(prev => {
+      const next = prev.map((c, i) => i === index ? { ...c, score: Math.max(1, Math.min(10, c.score + delta)) } : c)
+      localStorage.setItem('stoa-life-wheel', JSON.stringify(next))
+      return next
+    })
+  }
+
+  function toggleManifestationStatus(index) {
+    setManifestations(prev => {
+      const next = prev.map((m, i) => i === index ? { ...m, status: m.status === 'received' ? 'in progress' : 'received' } : m)
+      localStorage.setItem('stoa-manifestations', JSON.stringify(next))
+      return next
+    })
+  }
+
+  function addManifestation() {
+    if (!newIntention.trim()) return
+    setManifestations(prev => {
+      const next = [...prev, { intention: newIntention.trim(), status: 'in progress' }]
+      localStorage.setItem('stoa-manifestations', JSON.stringify(next))
+      return next
+    })
+    setNewIntention('')
+  }
 
   const ringSize = 180
 
@@ -498,8 +550,8 @@ export default function Progress() {
         }}>
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
             <svg width={220} height={220} viewBox="0 0 220 220">
-              {WHEEL_CATEGORIES.map((cat, i) => {
-                const angle = (i / WHEEL_CATEGORIES.length) * Math.PI * 2 - Math.PI / 2
+              {wheelCategories.map((cat, i) => {
+                const angle = (i / wheelCategories.length) * Math.PI * 2 - Math.PI / 2
                 const maxR = 90
                 const r = (cat.score / 10) * maxR
                 const x = 110 + Math.cos(angle) * r
@@ -531,8 +583,8 @@ export default function Progress() {
                 )
               })}
               <polygon
-                points={WHEEL_CATEGORIES.map((cat, i) => {
-                  const angle = (i / WHEEL_CATEGORIES.length) * Math.PI * 2 - Math.PI / 2
+                points={wheelCategories.map((cat, i) => {
+                  const angle = (i / wheelCategories.length) * Math.PI * 2 - Math.PI / 2
                   const r = (cat.score / 10) * 90
                   return `${110 + Math.cos(angle) * r},${110 + Math.sin(angle) * r}`
                 }).join(' ')}
@@ -544,15 +596,24 @@ export default function Progress() {
             </svg>
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
-            {WHEEL_CATEGORIES.map(cat => (
-              <span key={cat.label} style={{
-                fontFamily: fonts.mono, fontSize: 11,
-                color: colors.text2,
+            {wheelCategories.map((cat, i) => (
+              <div key={cat.label} style={{
+                display: 'flex', alignItems: 'center', gap: 6,
                 background: 'rgba(255,255,255,0.04)',
-                borderRadius: 8, padding: '4px 10px',
+                borderRadius: 8, padding: '4px 6px',
               }}>
-                {cat.label} {cat.score}/10
-              </span>
+                <span onClick={() => updateWheelScore(i, -1)} style={{
+                  fontFamily: fonts.mono, fontSize: 14, color: colors.text3,
+                  cursor: 'pointer', padding: '0 4px', userSelect: 'none',
+                }}>−</span>
+                <span style={{ fontFamily: fonts.mono, fontSize: 11, color: colors.text2, minWidth: 52, textAlign: 'center' }}>
+                  {cat.label} {cat.score}
+                </span>
+                <span onClick={() => updateWheelScore(i, 1)} style={{
+                  fontFamily: fonts.mono, fontSize: 14, color: colors.text3,
+                  cursor: 'pointer', padding: '0 4px', userSelect: 'none',
+                }}>+</span>
+              </div>
             ))}
           </div>
         </div>
@@ -573,15 +634,11 @@ export default function Progress() {
           background: colors.surface, borderRadius: 14, padding: 20,
           display: 'flex', flexDirection: 'column', gap: 14,
         }}>
-          {[
-            { intention: 'Feel strong and confident in my body', status: 'in progress' },
-            { intention: 'Find a meditation practice that sticks', status: 'received' },
-            { intention: 'Wake up excited about my life', status: 'in progress' },
-          ].map((item, i) => (
+          {manifestations.map((item, i) => (
             <div key={i} style={{
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              paddingBottom: i < 2 ? 14 : 0,
-              borderBottom: i < 2 ? `1px solid ${colors.border}` : 'none',
+              paddingBottom: i < manifestations.length - 1 ? 14 : 0,
+              borderBottom: i < manifestations.length - 1 ? `1px solid ${colors.border}` : 'none',
             }}>
               <span style={{
                 fontFamily: fonts.sans, fontSize: 14, color: colors.text,
@@ -589,18 +646,38 @@ export default function Progress() {
               }}>
                 {item.intention}
               </span>
-              <span style={{
+              <span onClick={() => toggleManifestationStatus(i)} style={{
                 fontFamily: fonts.mono, fontSize: 10,
                 color: item.status === 'received' ? '#fff' : colors.text3,
                 textTransform: 'uppercase', letterSpacing: 1,
                 background: item.status === 'received' ? 'rgba(255,255,255,0.1)' : 'transparent',
-                padding: item.status === 'received' ? '3px 8px' : 0,
-                borderRadius: 6, whiteSpace: 'nowrap',
+                padding: '3px 8px',
+                borderRadius: 6, whiteSpace: 'nowrap', cursor: 'pointer',
               }}>
                 {item.status}
               </span>
             </div>
           ))}
+          {/* Add new */}
+          <div style={{
+            display: 'flex', gap: 10, alignItems: 'center',
+            paddingTop: 14, borderTop: `1px solid ${colors.border}`,
+          }}>
+            <input
+              value={newIntention}
+              onChange={e => setNewIntention(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && addManifestation()}
+              placeholder="Add an intention..."
+              style={{
+                flex: 1, background: 'transparent', border: 'none', outline: 'none',
+                fontFamily: fonts.sans, fontSize: 14, color: colors.text,
+              }}
+            />
+            <span onClick={addManifestation} style={{
+              fontFamily: fonts.sans, fontSize: 20, color: newIntention.trim() ? colors.text2 : colors.text3,
+              cursor: newIntention.trim() ? 'pointer' : 'default',
+            }}>+</span>
+          </div>
         </div>
       </div>
 

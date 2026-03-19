@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router-dom'
 import TabBar from './components/TabBar'
 import Home from './pages/Home'
 import Community from './pages/Community'
+import CommunityPage from './pages/CommunityPage'
 import Mind from './pages/Mind'
 import Progress from './pages/Progress'
 import Profile from './pages/Profile'
@@ -12,6 +13,7 @@ import Workout from './pages/Workout'
 import Playlist from './pages/Playlist'
 import SleepStory from './pages/SleepStory'
 import Rituals from './pages/Rituals'
+import RitualSession from './pages/RitualSession'
 
 export default function App() {
   return (
@@ -26,6 +28,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/community" element={<Community />} />
+        <Route path="/community/:slug" element={<CommunityPage />} />
         <Route path="/mind" element={<Mind />} />
         <Route path="/progress" element={<Progress />} />
         <Route path="/profile" element={<Profile />} />
@@ -36,6 +39,7 @@ export default function App() {
         <Route path="/playlist/:slug?" element={<Playlist />} />
         <Route path="/sleep/:slug?" element={<SleepStory />} />
         <Route path="/rituals" element={<Rituals />} />
+        <Route path="/ritual/:slug" element={<RitualSession />} />
       </Routes>
       <TabBar />
     </div>

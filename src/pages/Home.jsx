@@ -381,7 +381,15 @@ export default function Home() {
     } catch { return { morning: [], afternoon: [], night: [] } }
   })
 
-  const [checkedRituals, setCheckedRituals] = useState({})
+  // Read today's completions from localStorage
+  const todayStr = new Date().toISOString().split('T')[0]
+  const [completions] = useState(() => {
+    try {
+      const stored = localStorage.getItem('stoa-ritual-completions')
+      const all = stored ? JSON.parse(stored) : {}
+      return all[todayStr] || []
+    } catch { return [] }
+  })
 
   const currentRitualSlugs = savedRituals[ritualTimeKey] || []
   const currentRituals = currentRitualSlugs
@@ -402,35 +410,43 @@ export default function Home() {
             Edit
           </p>
         </div>
-        {currentRituals.map(r => (
-          <div key={r.slug} onClick={() => setCheckedRituals(prev => ({ ...prev, [r.slug]: !prev[r.slug] }))} style={{
-            display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0',
-            borderTop: `1px solid ${colors.border}`, cursor: 'pointer',
-          }}>
-            <div style={{
-              width: 22, height: 22, borderRadius: 6,
-              border: checkedRituals[r.slug] ? 'none' : '1.5px solid rgba(255,255,255,0.25)',
-              background: checkedRituals[r.slug] ? 'rgba(255,255,255,0.15)' : 'transparent',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+        {currentRituals.map(r => {
+          const done = completions.includes(r.slug)
+          return (
+            <div key={r.slug} onClick={() => !done && navigate(`/ritual/${r.slug}`)} style={{
+              display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0',
+              borderTop: `1px solid ${colors.border}`, cursor: done ? 'default' : 'pointer',
             }}>
-              {checkedRituals[r.slug] && (
-                <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="20 6 9 17 4 12" />
+              <div style={{
+                width: 22, height: 22, borderRadius: 6,
+                border: done ? 'none' : '1.5px solid rgba(255,255,255,0.25)',
+                background: done ? 'rgba(255,255,255,0.15)' : 'transparent',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+              }}>
+                {done && (
+                  <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                )}
+              </div>
+              <div style={{ flex: 1 }}>
+                <p style={{
+                  fontFamily: fonts.sans, fontSize: 13, fontWeight: 500, color: colors.text,
+                  opacity: done ? 0.4 : 1,
+                }}>
+                  {r.title}
+                </p>
+              </div>
+              {done ? (
+                <p style={{ fontFamily: fonts.sans, fontSize: 10, color: colors.text3 }}>Done</p>
+              ) : (
+                <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke={colors.text3} strokeWidth={2} strokeLinecap="round">
+                  <polyline points="9 18 15 12 9 6" />
                 </svg>
               )}
             </div>
-            <div style={{ flex: 1 }}>
-              <p style={{
-                fontFamily: fonts.sans, fontSize: 13, fontWeight: 500, color: colors.text,
-                textDecoration: checkedRituals[r.slug] ? 'line-through' : 'none',
-                opacity: checkedRituals[r.slug] ? 0.4 : 1,
-              }}>
-                {r.title}
-              </p>
-            </div>
-            <p style={{ fontFamily: fonts.sans, fontSize: 11, color: colors.text3 }}>{r.duration} min</p>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   ) : (

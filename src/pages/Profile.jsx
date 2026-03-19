@@ -78,10 +78,44 @@ function Chevron({ color = colors.text3 }) {
   )
 }
 
+function getProfileStats() {
+  // Journal entries
+  let journalCount = 0
+  try {
+    const entries = JSON.parse(localStorage.getItem('stoa-journal-entries') || '[]')
+    journalCount = entries.length
+  } catch {}
+
+  // Ritual completions — count total completed
+  let ritualDays = 0
+  try {
+    const completions = JSON.parse(localStorage.getItem('stoa-ritual-completions') || '{}')
+    ritualDays = Object.keys(completions).length
+  } catch {}
+
+  // Streak — days with ritual completions
+  let streak = 0
+  try {
+    const completions = JSON.parse(localStorage.getItem('stoa-ritual-completions') || '{}')
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    for (let i = 0; i < 365; i++) {
+      const d = new Date(today)
+      d.setDate(d.getDate() - i)
+      const key = d.toISOString().split('T')[0]
+      if (completions[key] && completions[key].length > 0) streak++
+      else if (i > 0) break
+    }
+  } catch {}
+
+  return { journalCount, ritualDays, streak }
+}
+
 export default function Profile() {
   const [vibe, setVibe] = useState(() => {
     try { return localStorage.getItem('stoa-vibe') || 'universal' } catch { return 'universal' }
   })
+  const stats = getProfileStats()
 
   const handleVibeChange = (v) => {
     setVibe(v)
@@ -148,9 +182,9 @@ export default function Profile() {
           display: 'flex',
         }}>
           {[
-            { value: '38', label: 'day streak' },
-            { value: '124', label: 'hours practiced' },
-            { value: '47', label: 'journal entries' },
+            { value: String(stats.streak || 0), label: 'day streak' },
+            { value: String(stats.ritualDays || 0), label: 'ritual days' },
+            { value: String(stats.journalCount || 0), label: 'journal entries' },
           ].map((stat, i) => (
             <div key={stat.label} style={{
               flex: 1, padding: '22px 8px', textAlign: 'center',
