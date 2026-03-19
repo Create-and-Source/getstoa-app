@@ -32,13 +32,20 @@ const SEARCH_SUGGESTIONS = [
   'mindfulness', 'aesthetic', 'cozy', 'plants', 'candles',
 ]
 
-const DEFAULT_AFFIRMATIONS = [
-  'I am becoming the person I was always meant to be.',
-  'She built a life so beautiful, it healed her.',
-  'My peace is non-negotiable.',
-  'I attract what I am, not what I want.',
-  'Dear body, I trust you.',
-]
+function getDefaultAffirmations(vibe) {
+  const vibeAffirmation = vibe === 'her'
+    ? 'She built a life so beautiful, it healed her.'
+    : vibe === 'his'
+      ? 'He built a life so powerful, it freed him.'
+      : 'Build a life so beautiful, it heals you.'
+  return [
+    'I am becoming the person I was always meant to be.',
+    vibeAffirmation,
+    'My peace is non-negotiable.',
+    'I attract what I am, not what I want.',
+    'Dear body, I trust you.',
+  ]
+}
 
 function loadSavedPhotos() {
   try {
@@ -47,11 +54,11 @@ function loadSavedPhotos() {
   } catch { return [] }
 }
 
-function loadSavedAffirmations() {
+function loadSavedAffirmations(vibe) {
   try {
     const saved = localStorage.getItem('stoa-vision-affirmations')
-    return saved ? JSON.parse(saved) : DEFAULT_AFFIRMATIONS
-  } catch { return DEFAULT_AFFIRMATIONS }
+    return saved ? JSON.parse(saved) : getDefaultAffirmations(vibe)
+  } catch { return getDefaultAffirmations(vibe) }
 }
 
 function saveToDisk(photos, affirmations) {
@@ -60,8 +67,11 @@ function saveToDisk(photos, affirmations) {
 }
 
 export default function VisionBoard() {
+  const [vibe] = useState(() => {
+    try { return localStorage.getItem('stoa-vibe') || 'universal' } catch { return 'universal' }
+  })
   const [selectedPhotos, setSelectedPhotos] = useState(loadSavedPhotos)
-  const [affirmations, setAffirmations] = useState(loadSavedAffirmations)
+  const [affirmations, setAffirmations] = useState(() => loadSavedAffirmations(vibe))
   const [showPicker, setShowPicker] = useState(false)
   const [showAddText, setShowAddText] = useState(false)
   const [pickerTab, setPickerTab] = useState('stoa') // 'stoa' | 'search'

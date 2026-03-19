@@ -4,8 +4,7 @@ import { colors, fonts, radius } from '../theme'
 
 // Clean photos (no baked-in text) — safe for text overlay
 const CLEAN_PHOTOS = [
-  '/skin.jpg', '/mudra.jpg', '/palo-santo.jpg',
-  '/crystal.jpg', '/leaf-dark.jpg', '/yoga.jpg', '/sage-bowl.jpg',
+  '/mudra.jpg', '/leaf-dark.jpg', '/yoga.jpg', '/sage-bowl.jpg',
 ]
 
 // Photos with text baked in — show standalone only, never overlay app text
@@ -13,16 +12,17 @@ const TEXT_PHOTOS = [
   '/live-slowly.jpg', '/bodymindssoul.jpg', '/meditation.jpg', '/soul.jpg',
   '/whole.jpg', '/water.jpg', '/harmony.jpg', '/routines.jpg',
   '/connection.jpg', '/mindbody.jpg', '/monstera.jpg',
+  '/skin.jpg', '/palo-santo.jpg', '/crystal.jpg',
 ]
 
 const ALL_PHOTOS = [...CLEAN_PHOTOS, ...TEXT_PHOTOS]
 
 // Time-preferred hero photos — ONLY from CLEAN_PHOTOS (no baked-in text)
 const TIME_PHOTOS = {
-  morning: ['/palo-santo.jpg', '/sage-bowl.jpg', '/crystal.jpg', '/yoga.jpg'],
-  afternoon: ['/yoga.jpg', '/palo-santo.jpg', '/sage-bowl.jpg'],
-  evening: ['/mudra.jpg', '/leaf-dark.jpg', '/skin.jpg'],
-  night: ['/crystal.jpg', '/leaf-dark.jpg', '/skin.jpg'],
+  morning: ['/sage-bowl.jpg', '/yoga.jpg', '/mudra.jpg'],
+  afternoon: ['/yoga.jpg', '/sage-bowl.jpg', '/mudra.jpg'],
+  evening: ['/mudra.jpg', '/leaf-dark.jpg', '/yoga.jpg'],
+  night: ['/leaf-dark.jpg', '/mudra.jpg', '/sage-bowl.jpg'],
 }
 
 // Color atmosphere tints by time of day
@@ -166,6 +166,20 @@ const TIME_COPY = {
   },
 }
 
+const VIBE_QUOTES = {
+  afternoon: {
+    her: '"She remembered who she was and the game changed."',
+    his: '"He remembered who he was and the game changed."',
+    universal: '"Remember who you are. The game changes."',
+  },
+}
+
+const VIBE_VISION_AFFIRMATION = {
+  her: 'She built a life so beautiful, it healed her.',
+  his: 'He built a life so powerful, it freed him.',
+  universal: 'Build a life so beautiful, it heals you.',
+}
+
 const TIME_CONFIG = {
   morning: {
     greeting: 'Good morning',
@@ -213,6 +227,10 @@ export default function Home() {
   const timeConfig = TIME_CONFIG[timeOfDay]
   const timeCopy = TIME_COPY[timeOfDay]
   const tint = TIME_TINTS[timeOfDay]
+  const [vibe] = useState(() => {
+    try { return localStorage.getItem('stoa-vibe') || 'universal' } catch { return 'universal' }
+  })
+  const displayQuote = VIBE_QUOTES[timeOfDay]?.[vibe] || timeCopy.quote
   const hour = new Date().getHours()
 
   // Daily seeded stats
@@ -258,7 +276,7 @@ export default function Home() {
       ? shuffle(savedAffirmations).slice(0, 4)
       : [
           'I am becoming the person I was always meant to be.',
-          'She built a life so beautiful, it healed her.',
+          VIBE_VISION_AFFIRMATION[vibe],
           'My peace is non-negotiable.',
           'I attract what I am, not what I want.',
         ]
@@ -276,7 +294,7 @@ export default function Home() {
     }
 
     return { photos: pagePhotos, visionItems: vItems }
-  }, [timeOfDay])
+  }, [timeOfDay, vibe])
 
   const [visionIdx, setVisionIdx] = useState(0)
   useEffect(() => {
@@ -931,7 +949,7 @@ export default function Home() {
       {/* ========== INSIGHT ========== */}
       <div style={{ padding: '0 32px 32px', textAlign: 'center' }}>
         <p style={{ fontFamily: fonts.sans, fontSize: 14, fontWeight: 300, color: colors.text2, lineHeight: 1.8, letterSpacing: 0.3 }}>
-          {timeCopy.quote}
+          {displayQuote}
         </p>
       </div>
     </div>

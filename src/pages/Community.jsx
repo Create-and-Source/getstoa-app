@@ -2,8 +2,7 @@ import { useState } from 'react'
 import { colors, fonts, radius } from '../theme'
 
 const CLEAN_PHOTOS = [
-  '/skin.jpg', '/mudra.jpg', '/palo-santo.jpg',
-  '/crystal.jpg', '/leaf-dark.jpg', '/yoga.jpg', '/sage-bowl.jpg',
+  '/mudra.jpg', '/leaf-dark.jpg', '/yoga.jpg', '/sage-bowl.jpg',
 ]
 
 function seededRandom(seed) {

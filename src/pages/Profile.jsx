@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { colors, fonts, radius } from '../theme'
 
 // --- Universe Notes system (same as other pages) ---
@@ -78,6 +79,15 @@ function Chevron({ color = colors.text3 }) {
 }
 
 export default function Profile() {
+  const [vibe, setVibe] = useState(() => {
+    try { return localStorage.getItem('stoa-vibe') || 'universal' } catch { return 'universal' }
+  })
+
+  const handleVibeChange = (v) => {
+    setVibe(v)
+    try { localStorage.setItem('stoa-vibe', v) } catch {}
+  }
+
   return (
     <div style={{
       height: '100%',
@@ -160,6 +170,44 @@ export default function Profile() {
               </p>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* My Vibe */}
+      <div style={{ padding: '0 16px 20px' }}>
+        <p style={{ ...sectionLabel, padding: '0 8px' }}>My Vibe</p>
+        <div style={{
+          background: colors.surface, borderRadius: 14, padding: '18px 20px',
+        }}>
+          <p style={{
+            fontFamily: fonts.sans, fontSize: 13, fontWeight: 300,
+            color: colors.text2, marginBottom: 16, lineHeight: 1.5,
+          }}>
+            Personalizes quotes, affirmations, and language throughout your experience.
+          </p>
+          <div style={{ display: 'flex', gap: 8 }}>
+            {[
+              { key: 'her', label: 'Her' },
+              { key: 'his', label: 'His' },
+              { key: 'universal', label: 'Universal' },
+            ].map(opt => (
+              <button
+                key={opt.key}
+                onClick={() => handleVibeChange(opt.key)}
+                style={{
+                  flex: 1,
+                  fontFamily: fonts.sans, fontSize: 13, fontWeight: vibe === opt.key ? 600 : 400,
+                  color: vibe === opt.key ? '#fff' : colors.text3,
+                  background: vibe === opt.key ? 'rgba(255,255,255,0.1)' : 'transparent',
+                  border: `1px solid ${vibe === opt.key ? 'rgba(255,255,255,0.2)' : colors.border}`,
+                  borderRadius: radius.pill, padding: '12px 0', cursor: 'pointer',
+                  transition: 'all 0.2s',
+                }}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 

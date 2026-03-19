@@ -3,8 +3,7 @@ import { colors, fonts, radius } from '../theme'
 
 // Clean photos — safe for text overlay
 const CLEAN_PHOTOS = [
-  '/skin.jpg', '/mudra.jpg', '/palo-santo.jpg',
-  '/crystal.jpg', '/leaf-dark.jpg', '/yoga.jpg', '/sage-bowl.jpg',
+  '/mudra.jpg', '/leaf-dark.jpg', '/yoga.jpg', '/sage-bowl.jpg',
 ]
 
 // Photos with text baked in — show standalone only
@@ -12,6 +11,7 @@ const TEXT_PHOTOS = [
   '/live-slowly.jpg', '/bodymindssoul.jpg', '/meditation.jpg', '/soul.jpg',
   '/whole.jpg', '/water.jpg', '/harmony.jpg', '/routines.jpg',
   '/connection.jpg', '/mindbody.jpg', '/monstera.jpg',
+  '/skin.jpg', '/palo-santo.jpg', '/crystal.jpg',
 ]
 
 const UNIVERSE_NOTES = [
