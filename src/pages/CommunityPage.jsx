@@ -128,6 +128,37 @@ export default function CommunityPage() {
 
   const [showEdit, setShowEdit] = useState(false)
   const [liked, setLiked] = useState({})
+  const [composing, setComposing] = useState(false)
+  const [postText, setPostText] = useState('')
+
+  // User posts from localStorage
+  const [userPosts, setUserPosts] = useState(() => {
+    try {
+      const stored = localStorage.getItem(`stoa-community-posts-${slug}`)
+      return stored ? JSON.parse(stored) : []
+    } catch { return [] }
+  })
+
+  // Get user's profile name
+  const userName = (() => {
+    try { return localStorage.getItem('stoa-profile-name') || 'You' } catch { return 'You' }
+  })()
+
+  function submitPost() {
+    if (!postText.trim()) return
+    const newPost = {
+      user: userName,
+      text: postText.trim(),
+      time: 'Just now',
+      hearts: 0,
+      isUser: true,
+    }
+    const updated = [newPost, ...userPosts]
+    setUserPosts(updated)
+    localStorage.setItem(`stoa-community-posts-${slug}`, JSON.stringify(updated))
+    setPostText('')
+    setComposing(false)
+  }
 
   const base = DEFAULT_COMMUNITIES[slug]
   if (!base) {
@@ -254,26 +285,60 @@ export default function CommunityPage() {
         </p>
 
         {/* Compose */}
-        <div style={{
-          background: colors.surface, borderRadius: 14, padding: '16px 18px',
-          marginBottom: 14, display: 'flex', alignItems: 'center', gap: 12,
-          border: `1px solid ${colors.border}`, cursor: 'pointer',
-        }}>
-          <div style={{
-            width: 32, height: 32, borderRadius: 16,
-            background: 'rgba(255,255,255,0.06)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+        {!composing ? (
+          <div onClick={() => setComposing(true)} style={{
+            background: colors.surface, borderRadius: 14, padding: '16px 18px',
+            marginBottom: 14, display: 'flex', alignItems: 'center', gap: 12,
+            border: `1px solid ${colors.border}`, cursor: 'pointer',
           }}>
-            <span style={{ fontFamily: fonts.sans, fontSize: 12, color: colors.text2 }}>S</span>
+            <div style={{
+              width: 32, height: 32, borderRadius: 16,
+              background: 'rgba(255,255,255,0.06)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+            }}>
+              <span style={{ fontFamily: fonts.sans, fontSize: 12, color: colors.text2 }}>{userName.charAt(0)}</span>
+            </div>
+            <p style={{ fontFamily: fonts.sans, fontSize: 14, color: colors.text3, fontStyle: 'italic' }}>
+              Share something...
+            </p>
           </div>
-          <p style={{ fontFamily: fonts.sans, fontSize: 14, color: colors.text3, fontStyle: 'italic' }}>
-            Share something...
-          </p>
-        </div>
+        ) : (
+          <div style={{
+            background: colors.surface, borderRadius: 14,
+            border: `1px solid ${colors.border}`, marginBottom: 14,
+            overflow: 'hidden',
+          }}>
+            <textarea
+              autoFocus
+              value={postText}
+              onChange={e => setPostText(e.target.value)}
+              placeholder="What's on your mind?"
+              style={{
+                width: '100%', minHeight: 100, background: 'transparent',
+                border: 'none', outline: 'none', padding: '16px 18px',
+                fontFamily: fonts.sans, fontSize: 14, color: colors.text,
+                resize: 'none', lineHeight: 1.6,
+              }}
+            />
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, padding: '0 14px 14px' }}>
+              <span onClick={() => { setComposing(false); setPostText('') }} style={{
+                fontFamily: fonts.sans, fontSize: 13, color: colors.text3, cursor: 'pointer', padding: '8px 16px',
+              }}>Cancel</span>
+              <span onClick={submitPost} style={{
+                fontFamily: fonts.sans, fontSize: 13, fontWeight: 600,
+                color: postText.trim() ? '#fff' : colors.text3,
+                background: postText.trim() ? 'rgba(255,255,255,0.1)' : 'transparent',
+                border: `1px solid ${postText.trim() ? 'rgba(255,255,255,0.2)' : colors.border}`,
+                borderRadius: radius.pill, padding: '8px 20px',
+                cursor: postText.trim() ? 'pointer' : 'default',
+              }}>Post</span>
+            </div>
+          </div>
+        )}
 
-        {/* Posts */}
+        {/* Posts — user posts first, then demo posts */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {community.posts.map((post, i) => (
+          {[...userPosts, ...community.posts].map((post, i) => (
             <div key={i} style={{ background: colors.surface, borderRadius: 14, padding: 18 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
                 <div style={{
