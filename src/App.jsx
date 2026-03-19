@@ -1,7 +1,7 @@
 import { Routes, Route } from 'react-router-dom'
 import TabBar from './components/TabBar'
 import Home from './pages/Home'
-import Train from './pages/Train'
+import Community from './pages/Community'
 import Mind from './pages/Mind'
 import Progress from './pages/Progress'
 import Profile from './pages/Profile'
@@ -19,7 +19,7 @@ export default function App() {
     }}>
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/train" element={<Train />} />
+        <Route path="/community" element={<Community />} />
         <Route path="/mind" element={<Mind />} />
         <Route path="/progress" element={<Progress />} />
         <Route path="/profile" element={<Profile />} />

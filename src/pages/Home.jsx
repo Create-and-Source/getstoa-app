@@ -677,6 +677,78 @@ export default function Home() {
         </div>
       </div>
 
+      {/* ========== MOVEMENT — horizontal scroll (replaces Train tab) ========== */}
+      <div style={{ padding: '24px 0 0' }}>
+        <div style={{ padding: '0 24px', marginBottom: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+          <p style={{
+            fontFamily: fonts.sans, fontSize: 10, fontWeight: 600,
+            color: colors.text3, letterSpacing: 3, textTransform: 'uppercase',
+          }}>
+            Movement
+          </p>
+          <span style={{
+            fontFamily: fonts.sans, fontSize: 11, fontWeight: 500,
+            color: colors.text3, cursor: 'pointer',
+          }}>
+            See All
+          </span>
+        </div>
+        <div style={{
+          display: 'flex', gap: 12, overflowX: 'auto',
+          paddingLeft: 24, paddingRight: 24, paddingBottom: 4,
+        }}>
+          {[
+            { title: 'Morning Flow', type: 'Yoga', duration: '25 min', instructor: 'Sarah M.', color: '#1E2A20' },
+            { title: 'Sculpt & Tone', type: 'Pilates', duration: '30 min', instructor: 'Nadia C.', color: '#2A2520' },
+            { title: 'Walk + Breathe', type: 'Walking', duration: '20 min', instructor: 'Amara J.', color: '#201E2A' },
+            { title: 'Full Body Strength', type: 'Strength', duration: '35 min', instructor: 'Sarah M.', color: '#2A2020' },
+            { title: 'Stretch & Release', type: 'Recovery', duration: '15 min', instructor: 'Nadia C.', color: '#1E1E2A' },
+          ].map((workout, i) => (
+            <div key={i} style={{
+              minWidth: 170, borderRadius: 14, overflow: 'hidden',
+              background: workout.color, cursor: 'pointer', flexShrink: 0,
+            }}>
+              <div style={{
+                height: 100,
+                background: `linear-gradient(135deg, ${workout.color} 0%, rgba(255,255,255,0.04) 100%)`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                position: 'relative',
+              }}>
+                <div style={{
+                  width: 36, height: 36, borderRadius: 18,
+                  background: 'rgba(255,255,255,0.1)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <svg width={14} height={14} viewBox="0 0 24 24" fill="#fff">
+                    <polygon points="6 3 20 12 6 21" />
+                  </svg>
+                </div>
+                <span style={{
+                  position: 'absolute', top: 10, right: 12,
+                  fontFamily: fonts.sans, fontSize: 9, fontWeight: 600,
+                  color: 'rgba(255,255,255,0.4)', letterSpacing: 1, textTransform: 'uppercase',
+                }}>
+                  {workout.type}
+                </span>
+              </div>
+              <div style={{ padding: '12px 14px 14px' }}>
+                <p style={{
+                  fontFamily: fonts.sans, fontSize: 13, fontWeight: 600,
+                  color: '#fff', marginBottom: 3,
+                }}>
+                  {workout.title}
+                </p>
+                <p style={{
+                  fontFamily: fonts.sans, fontSize: 10, color: 'rgba(255,255,255,0.4)',
+                }}>
+                  {workout.instructor} &middot; {workout.duration}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* ========== GROUPS — horizontal scroll ========== */}
       <div style={{ padding: '24px 0 0' }}>
         <div style={{ padding: '0 24px', marginBottom: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>

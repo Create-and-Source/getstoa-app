@@ -3,8 +3,8 @@ import { colors, fonts } from '../theme'
 
 const tabs = [
   { path: '/', label: 'Home', icon: HomeIcon },
-  { path: '/train', label: 'Train', icon: TrainIcon },
   { path: '/mind', label: 'Mind', icon: MindIcon },
+  { path: '/community', label: 'Community', icon: CommunityIcon },
   { path: '/progress', label: 'Progress', icon: ProgressIcon },
   { path: '/profile', label: 'Profile', icon: ProfileIcon },
 ]
@@ -74,14 +74,13 @@ function HomeIcon({ color, size }) {
   )
 }
 
-function TrainIcon({ color, size }) {
+function CommunityIcon({ color, size }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M18 8a2 2 0 11-4 0 2 2 0 014 0zM6 8a2 2 0 11-4 0 2 2 0 014 0z" />
-      <path d="M2 8h20" />
-      <path d="M12 8v8" />
-      <path d="M9 20h6" />
-      <path d="M12 16v4" />
+      <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 00-3-3.87" />
+      <path d="M16 3.13a4 4 0 010 7.75" />
     </svg>
   )
 }
