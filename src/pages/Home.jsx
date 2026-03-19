@@ -4,7 +4,7 @@ import { colors, fonts, radius } from '../theme'
 
 // Clean photos (no baked-in text) — safe for text overlay
 const CLEAN_PHOTOS = [
-  '/skin.jpg', '/mudra.jpg', '/palo-santo.jpg', '/monstera.jpg',
+  '/skin.jpg', '/mudra.jpg', '/palo-santo.jpg',
   '/crystal.jpg', '/leaf-dark.jpg', '/yoga.jpg', '/sage-bowl.jpg',
 ]
 
@@ -12,15 +12,15 @@ const CLEAN_PHOTOS = [
 const TEXT_PHOTOS = [
   '/live-slowly.jpg', '/bodymindssoul.jpg', '/meditation.jpg', '/soul.jpg',
   '/whole.jpg', '/water.jpg', '/harmony.jpg', '/routines.jpg',
-  '/connection.jpg', '/mindbody.jpg',
+  '/connection.jpg', '/mindbody.jpg', '/monstera.jpg',
 ]
 
 const ALL_PHOTOS = [...CLEAN_PHOTOS, ...TEXT_PHOTOS]
 
 // Time-preferred hero photos — ONLY from CLEAN_PHOTOS (no baked-in text)
 const TIME_PHOTOS = {
-  morning: ['/palo-santo.jpg', '/sage-bowl.jpg', '/monstera.jpg', '/crystal.jpg'],
-  afternoon: ['/yoga.jpg', '/monstera.jpg', '/palo-santo.jpg'],
+  morning: ['/palo-santo.jpg', '/sage-bowl.jpg', '/crystal.jpg', '/yoga.jpg'],
+  afternoon: ['/yoga.jpg', '/palo-santo.jpg', '/sage-bowl.jpg'],
   evening: ['/mudra.jpg', '/leaf-dark.jpg', '/skin.jpg'],
   night: ['/crystal.jpg', '/leaf-dark.jpg', '/skin.jpg'],
 }
